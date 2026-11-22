@@ -88,8 +88,6 @@ const HS={
   board:{scene:'out',x:3,y:8,z:26,ax:3.3,ay:8.7},
   hdoor:{scene:'out',x:6.5,y:6,z:30,ax:6.5,ay:6.4},
   adoor:{scene:'out',x:11.25,y:6,z:30,ax:11.25,ay:6.4},
-  guests:{scene:'out',x:7.9,y:6.9,z:24,ax:7,ay:7.4},
-  stove:{scene:'home',x:1.5,y:.6,z:46,ax:1.5,ay:1.5},
   table:{scene:'home',x:3.25,y:3.1,z:34,ax:3.25,ay:4.1},
   hbed:{scene:'home',x:5.85,y:1,z:40,ax:5.85,ay:2.4},
   hmat:{scene:'home',x:3.5,y:5.6,z:10,ax:3.5,ay:5.55},
@@ -97,26 +95,24 @@ const HS={
   astand:{scene:'annex',x:3.1,y:.5,z:40,ax:3.1,ay:1.2},
   amat:{scene:'annex',x:2,y:3.6,z:10,ax:2,ay:3.55}
 };
-const SEATS=[{x:2.15,y:3.1},{x:4.35,y:3.1},{x:3.25,y:2.3}];
-const PLATES=[{x:2.8,y:3.1},{x:3.7,y:3.1},{x:3.25,y:2.85}];
 const COL=['#c2553f','#4f8f8a','#8a6fb0'],HAIR=['#5a3a22','#d9b45a','#2e2a2a'];
 const PRICE={bed:30,annex:50};
 
 // ---------- состояние ----------
-const KEY='farm-hotel-proto-v1';
+const KEY='farm-hotel-proto-v2';
 function fresh(){return{
-  coins:0,day:1,phase:'ad',adText:'Сдам место на ночь. Ужин включён',posted:false,
-  cooked:false,served:false,dishes:false,plates:[],
-  rooms:{home:{built:true,cap:1,rate:30,bed:'ready'},annex:{built:false,cap:1,rate:30,bed:'ready'}},
+  coins:0,day:1,phase:'ad',adText:'Сдам место на ночь',posted:false,
+  rooms:{home:{built:true,cap:1,rate:30,bed:'bare'},annex:{built:false,cap:1,rate:30,bed:'bare'}},
   bookings:[],won:false,scene:'out',ledger:[{t:'Начало игры',d:0,b:0}]
 };}
 let S;
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.phase&&s.rooms)return s;}catch(e){}return null;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}hud();}
 
-let player,ents=[],eatT=0;
-const gn=()=>S.bookings.reduce((a,b)=>a+b.n,0);
+let player,ents=[];
 const roomName=r=>r==='home'?'номер в доме':'пристройка';
+const locked=r=>S.bookings.some(b=>b.room===r&&b.stage==='sleep');
+const doorX=(b,i)=>b.room==='home'?7.4+i*.7:11.9;
 
 function go(scene,x,y){player.scene=S.scene=scene;sc=SC[scene];player.x=x;player.y=y;player.path=[];player.then=null;save();}
 function start(s){
@@ -124,16 +120,15 @@ function start(s){
   player={scene:S.scene,x:0,y:0,path:[],then:null,busy:null,walk:0,col:'#3f6fb0',hair:'#7a4a22'};
   sc=SC[S.scene];
   const sp={out:[6.5,7.2],home:[3.5,5.2],annex:[2,3.2]}[S.scene];player.x=sp[0];player.y=sp[1];
-  eatT=1;placeGuests();save();
+  placeGuests();save();
 }
 function mkEnt(b,i){const k=b.room==='annex'?2:i;return{b:b.id,k,scene:'out',x:0,y:0,path:[],walk:0,lying:false,col:COL[k],hair:HAIR[k]};}
 function placeGuests(){
   ents=[];
   for(const b of S.bookings)for(let i=0;i<b.n;i++){
-    const e=mkEnt(b,i),k=e.k,dx=7.4+k*.7;
-    if(b.stage==='coming'){e.x=16+k*.9;e.y=9.7;e.path=[{x:dx,y:9.7},{x:dx,y:6.9}];}
+    const e=mkEnt(b,i),dx=doorX(b,i);
+    if(b.stage==='coming'){e.x=16+e.k*.9;e.y=9.7;e.path=[{x:dx,y:9.7},{x:dx,y:6.9}];}
     else if(b.stage==='door'){e.x=dx;e.y=6.9;}
-    else if(b.stage==='table'){e.scene='home';e.x=SEATS[k].x;e.y=SEATS[k].y;}
     else if(b.stage==='sleep'){e.scene=b.room;e.lying=true;}
     else continue;
     ents.push(e);
@@ -144,7 +139,7 @@ function placeGuests(){
 function makeBookings(){
   S.bookings=[{id:'home',room:'home',n:S.rooms.home.cap,stage:'coming',paid:false}];
   if(S.rooms.annex.built)S.bookings.push({id:'annex',room:'annex',n:1,stage:'coming',paid:false});
-  S.cooked=S.served=false;S.posted=true;S.phase='arrive';
+  S.posted=true;S.phase='arrive';
   placeGuests();
 }
 function adAct(){
@@ -159,34 +154,31 @@ function postAd(){
   toast('Объявление висит у дороги. Есть отклик: '+who()+' уже в пути.');save();
 }
 const who=()=>S.bookings.map(b=>b.n===2?'пара':'гость').join(' и ');
-function checkin(){
-  for(const b of S.bookings)b.stage='table';
-  for(const e of ents)e.path=[{x:6.5,y:6.4},{warp:'home',x:3.5,y:5.3},SEATS[e.k]];
-  S.phase='dinner';
-  toast('Заселены: '+S.bookings.map(b=>(b.n===2?'пара':'гость')+' — '+roomName(b.room)).join(', ')+'. Теперь ужин.');save();
-}
 function busy(d,k,cb){player.busy={t:0,d,k,cb};}
-function cook(){busy(2,'cook',()=>{S.cooked=true;toast('Ужин готов, порций: '+gn()+'. Продукты на сегодня закончились.');save();});}
-function serve(){S.served=true;S.plates=ents.filter(e=>e.scene==='home').map(e=>e.k);eatT=3;save();}
-function makeBed(b){busy(1.2,'bed',()=>{
-  S.rooms[b.room].bed='made';b.stage='sleep';
-  for(const e of ents)if(e.b===b.id)e.path=b.room==='home'
-    ?[{x:5.85,y:2.4},{lie:1}]
-    :[{x:3.5,y:5.5},{warp:'out',x:6.5,y:6.4},{x:11.25,y:6.4},{warp:'annex',x:2,y:3.3},{x:1.7,y:1.6},{lie:1}];
+function makeBed(r){busy(1.2,'bed',()=>{S.rooms[r].bed='made';save();});}
+function giveKey(b){
+  b.stage='sleep';
+  const home=b.room==='home';
+  for(const e of ents)if(e.b===b.id)e.path=home
+    ?[{x:6.5,y:6.4},{warp:'home',x:3.5,y:5.3},{x:5.85,y:2.4},{lie:1}]
+    :[{x:11.25,y:6.4},{warp:'annex',x:2,y:3.3},{x:1.7,y:1.6},{lie:1}];
   if(S.bookings.every(x=>x.stage==='sleep'))S.phase='night';
-  save();
-});}
+  toast('Ключ у '+(b.n===2?'пары':'гостя')+' ('+roomName(b.room)+'). До выезда эта дверь для тебя закрыта.');save();
+}
+function leave(b){
+  b.stage='left';S.rooms[b.room].bed='used';
+  ents=ents.filter(e=>e.b!==b.id);
+  const dx=b.room==='home'?6.5:11.25;
+  for(let i=0;i<b.n;i++){const e=mkEnt(b,i);e.x=dx+i*.6;e.y=6.6;e.path=[{x:dx+i*.6,y:9.7},{x:-1.5,y:9.7},{gone:1}];ents.push(e);}
+}
 function toMorning(){
   $('morningBtn').hidden=true;$('fade').classList.add('on');
   setTimeout(()=>{
-    ents=[];
-    for(const b of S.bookings){
-      b.stage='left';S.rooms[b.room].bed='used';
-      const dx=b.room==='home'?6.5:11.25;
-      for(let i=0;i<b.n;i++){const e=mkEnt(b,i);e.x=dx+i*.6;e.y=6.6;e.path=[{x:dx+i*.6,y:9.7},{x:-1.5,y:9.7},{gone:1}];ents.push(e);}
-    }
-    S.phase='morning';save();$('fade').classList.remove('on');
-    toast('Утро. Гости уезжают и оставляют плату.');
+    const late=S.bookings.length>1;
+    S.phase='morning';
+    for(const b of S.bookings)if(!(late&&b.room==='home'))leave(b);
+    save();$('fade').classList.remove('on');
+    toast(late?'Утро. Гость из пристройки вернул ключ и уехал. Пара ещё спит.':'Утро. '+(S.bookings[0].n===2?'Пара вернула':'Гость вернул')+' ключ, плата лежит в комнате.');
   },700);
 }
 function collect(b){
@@ -195,19 +187,21 @@ function collect(b){
   S.ledger.push({t:'Утро после ночи '+S.day+': '+(b.n===2?'пара':'гость')+', '+roomName(b.room),d:sum,b:S.coins});
   save();
   modal('<h2>Счёт: '+roomName(b.room)+'</h2><table>'+
-    '<tr><td>Проживание, 1 ночь, '+(b.n===2?'пара (2 гостя)':'1 гость')+'</td><td class="n">'+sum+'</td></tr>'+
-    '<tr><td>Ужин на '+b.n+'</td><td class="n">включён</td></tr>'+
+    '<tr><td>Ночлег, 1 ночь, '+(b.n===2?'пара (2 гостя)':'1 гость')+'</td><td class="n">'+sum+'</td></tr>'+
+    '<tr><td>Ключ</td><td class="n">возвращён</td></tr>'+
     '<tr><th>Получено</th><th class="n">'+sum+' монет</th></tr></table>',[{t:'Забрать',pri:1,fn:check}]);
 }
-function washUp(){busy(1,'clean',()=>{S.dishes=false;S.plates=[];check();});}
 function strip(r){busy(1,'clean',()=>{S.rooms[r].bed='bare';check();});}
-function prep(r){busy(1,'clean',()=>{S.rooms[r].bed='ready';check();});}
 function check(){
-  const R=S.rooms;
-  if(S.phase==='morning'&&S.bookings.every(b=>b.paid)&&!S.dishes&&R.home.bed==='ready'&&R.annex.bed==='ready'){
-    S.day++;S.bookings=[];S.posted=false;
-    if(R.home.cap===1||!R.annex.built){S.phase='build';save();openBuild();return;}
-    S.phase='ad';toast('Уборка закончена. Номера готовы — можно звать новых гостей.');
+  const R=S.rooms,done=b=>b.stage==='left'&&b.paid&&R[b.room].bed!=='used';
+  if(S.phase==='morning'){
+    const late=S.bookings.find(b=>b.stage==='sleep');
+    if(late&&S.bookings.every(b=>b===late||done(b))){leave(late);toast('Пара проснулась, вернула ключ и уехала. Номер в доме снова можно открыть.');}
+    else if(S.bookings.every(done)){
+      S.day++;S.bookings=[];S.posted=false;
+      if(R.home.cap===1||!R.annex.built){S.phase='build';save();openBuild();return;}
+      S.phase='ad';toast('Уборка закончена. Застели постели и зови новых гостей.');
+    }
   }
   save();
 }
@@ -217,7 +211,7 @@ function openBuild(){
     ?[['Спальных мест в номере','1 → 2'],['Кого можно принять','одного гостя → пару'],['Тариф за ночь','30 → 50']]
     :[['Номеров','1 → 2'],['Вместимость отеля','2 → 3 человека'],['Тариф пристройки','30 за ночь'],['Выручка за полную ночь','50 → 80']];
   modal('<h2>'+(bedUp?'Второе спальное место':'Одноместная пристройка')+'</h2><p>'+
-    (bedUp?'Уборка закончена. Диван можно заменить двумя кроватями.':'Рядом с домом есть земля под ещё один номер.')+'</p><table>'+
+    (bedUp?'Уборка закончена. Диван можно заменить двумя кроватями.':'Рядом с домом есть земля под ещё один номер с отдельным входом.')+'</p><table>'+
     rows.map(r=>'<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td></tr>').join('')+
     '<tr><th>Стоимость</th><th class="n">'+price+' монет</th></tr><tr><td>В кошельке</td><td class="n">'+S.coins+'</td></tr></table>',
     [{t:'Позже'},{t:'Купить за '+price,pri:1,off:!ok,fn:()=>buy(bedUp,price)}]);
@@ -227,35 +221,37 @@ function buy(bedUp,price){
   if(bedUp){R.home.cap=2;R.home.rate=50;S.ledger.push({t:'Переделка номера в двухместный',d:-price,b:S.coins});}
   else{R.annex.built=true;S.won=true;S.ledger.push({t:'Покупка одноместной пристройки',d:-price,b:S.coins});}
   makeBookings();save();
-  if(bedUp)toast('Номер стал двухместным, 50 за ночь. Объявление обновлено — едет первая пара.');
+  if(bedUp)toast('Номер стал двухместным, 50 за ночь. Объявление обновлено — пара уже едет. Застели кровати.');
   else modal('<h2>Первый прототип пройден</h2><p>Две ночи позади, на выручку куплена пристройка. Теперь у тебя два номера на трёх человек.</p>'+
-    '<p>Объявление обновлено: сегодня приедут пара и одиночный гость. Оплата и уборка считаются отдельно по каждому номеру.</p>',[{t:'Продолжить',pri:1}]);
+    '<p>Объявление обновлено: едут пара и одиночный гость. У каждого номера свой ключ: застели оба, а утром убирай тот, что освободился первым.</p>',[{t:'Продолжить',pri:1}]);
 }
 
 function tasks(){
-  const t=[],P=S.phase,R=S.rooms,add=(h,label,act)=>t.push(Object.assign({},h,{label,act}));
+  const t=[],P=S.phase,R=S.rooms,add=(h,label,act,door)=>t.push(Object.assign({},h,{label,act,door}));
   if(P==='ad')add(HS.board,S.day===1?'Написать объявление':'Обновить объявление',adAct);
-  if(P==='arrive'&&S.bookings.every(b=>b.stage==='door'))add(HS.guests,'Встретить и заселить',checkin);
-  if(P==='dinner'){if(!S.cooked)add(HS.stove,'Приготовить ужин',cook);else if(!S.served)add(HS.table,'Подать ужин',serve);}
-  if(P==='bed')for(const b of S.bookings)if(b.stage==='table')
-    add(b.room==='home'?HS.hbed:HS.abed,b.room==='home'&&R.home.cap===1?'Застелить диван':'Застелить постель',()=>makeBed(b));
-  if(P==='morning')for(const b of S.bookings){
-    const home=b.room==='home',bed=R[b.room].bed,h=home?HS.hbed:HS.abed;
+  if(P==='ad'||P==='arrive')for(const r of['home','annex'])if(R[r].built&&R[r].bed==='bare'&&!locked(r))
+    add(r==='home'?HS.hbed:HS.abed,r==='home'&&R.home.cap===1?'Застелить диван':'Застелить постель',()=>makeBed(r));
+  if(P==='arrive')for(const b of S.bookings)if(b.stage==='door'&&R[b.room].bed==='made')
+    add(b.room==='home'?HS.hdoor:HS.adoor,'Передать ключ',()=>giveKey(b),b.room);
+  if(P==='morning')for(const b of S.bookings)if(b.stage==='left'){
+    const home=b.room==='home';
     if(!b.paid)add(home?HS.table:HS.astand,'Забрать оплату',()=>collect(b));
-    else if(home&&S.dishes)add(HS.table,'Убрать посуду',washUp);
-    if(bed==='used')add(h,'Снять бельё',()=>strip(b.room));
-    else if(bed==='bare')add(h,'Подготовить номер',()=>prep(b.room));
+    if(R[b.room].bed==='used')add(home?HS.hbed:HS.abed,'Снять бельё',()=>strip(b.room));
   }
   if(P==='build'){if(R.home.cap===1)add(HS.hbed,'Второе спальное место',openBuild);else add(HS.adoor,'Построить пристройку',openBuild);}
   return t;
 }
 function hotspots(){
   const T=tasks(),here=T.filter(h=>h.scene===player.scene).map(h=>Object.assign(h,{mark:1}));
-  const none=!here.length,need=s=>none&&T.some(h=>h.scene===s),away=none&&T.length>0;
+  const none=!here.length,need=s=>none&&T.some(h=>h.scene===s),away=none&&(T.length>0||S.phase==='arrive'||S.phase==='night');
   if(player.scene==='out'){
-    here.push(Object.assign({},HS.hdoor,{label:'Войти в дом',mark:need('home'),act:()=>go('home',3.5,5.2)}));
-    if(S.rooms.annex.built)here.push(Object.assign({},HS.adoor,{label:'Войти в пристройку',mark:need('annex'),act:()=>go('annex',2,3.2)}));
-    if(S.phase!=='ad')here.push(Object.assign({},HS.board,{act:()=>toast(S.posted?'«'+S.adText+'» — объявление уже висит, второй раз звать некого.':'Доска для объявлений. Сначала подготовь номера.')}));
+    for(const r of['home','annex']){
+      if(!S.rooms[r].built||here.some(h=>h.door===r))continue;
+      const d=r==='home'?HS.hdoor:HS.adoor;
+      if(locked(r))here.push(Object.assign({},d,{act:()=>toast('Номер занят: ключ у гостей, до выезда дверь закрыта.')}));
+      else here.push(Object.assign({},d,{label:r==='home'?'Открыть номер':'Открыть пристройку',mark:need(r),act:()=>r==='home'?go('home',3.5,5.2):go('annex',2,3.2)}));
+    }
+    if(S.phase!=='ad')here.push(Object.assign({},HS.board,{act:()=>toast(S.posted?'«'+S.adText+'» — объявление уже висит, второй раз звать некого.':'Доска для объявлений.')}));
   }else if(player.scene==='home')here.push(Object.assign({},HS.hmat,{label:'Выйти',mark:away,act:()=>go('out',6.5,6.6)}));
   else here.push(Object.assign({},HS.amat,{label:'Выйти',mark:away,act:()=>go('out',11.25,6.6)}));
   return here;
@@ -281,7 +277,6 @@ function update(dt){
     const m=ents.filter(e=>e.b===b.id);
     if(m.length&&m.every(e=>!e.path.length)){b.stage='door';save();}
   }
-  if(S.phase==='dinner'&&S.served){eatT-=dt;if(eatT<=0){S.dishes=true;S.phase='bed';toast('Гости поужинали. Пора стелить постель.');save();}}
   $('morningBtn').hidden=!(S.phase==='night'&&ents.every(e=>e.lying)&&!$('fade').classList.contains('on'));
 }
 
@@ -297,16 +292,16 @@ function box(x,y,w,d,h,ct,cl,cr,z){z=z||0;
 function fy(x0,x1,y,z0,z1,c){quad([P(x0,y,z0),P(x1,y,z0),P(x1,y,z1),P(x0,y,z1)],c);}
 function fx(x,y0,y1,z0,z1,c){quad([P(x,y0,z0),P(x,y1,z0),P(x,y1,z1),P(x,y0,z1)],c);}
 function coins(x,y,z){for(let i=0;i<3;i++){const p=P(x+i*.12,y-i*.05,z+i*2);g.fillStyle='#b8860b';g.fillRect(p[0]-3,p[1]-1,6,3);g.fillStyle='#ffd35a';g.fillRect(p[0]-3,p[1]-2,6,2);}}
-const tod=()=>({ad:'day',arrive:'eve',dinner:'eve',bed:'eve',night:'night',morning:'morn',build:'morn'})[S.phase];
+const tod=()=>({ad:'day',arrive:'eve',night:'night',morning:'morn',build:'morn'})[S.phase];
 const SKY={day:'#a9dcf0',eve:'#f2b077',night:'#27325f',morn:'#cfeaf2'};
-const lit=()=>['dinner','bed','night'].includes(S.phase);
+const lit=()=>S.bookings.some(b=>b.stage==='sleep');
 
 function house(x,y,w,d,h,doorX){
   box(x,y,w,d,h,'#e8d2a6','#ecd3a2','#cfa873');
   fy(doorX-.35,doorX+.35,y+d,0,h*.62,'#7a4b2a');
   const p=P(doorX+.2,y+d,h*.3);g.fillStyle='#e9c46a';g.fillRect(p[0],p[1],2,2);
   const wc=lit()?'#ffe27a':'#8fc6da';
-  fy(x+.45,x+1.25,y+d,h*.34,h*.7,wc);if(w>3)fy(x+w-1.25,x+w-.45,y+d,h*.34,h*.7,wc);
+  if(w>3){fy(x+.5,x+1.2,y+d,0,h*.62,'#5f4630');fy(x+w-1.25,x+w-.45,y+d,h*.34,h*.7,wc);}else fy(x+.45,x+1.25,y+d,h*.34,h*.7,wc);
   fx(x+w,y+d*.3,y+d*.6,h*.34,h*.7,wc);
   const o=.3,rh=h*.7,e=[P(x-o,y-o,h),P(x+w+o,y-o,h),P(x+w+o,y+d+o,h),P(x-o,y+d+o,h)],r1=P(x+w*.3,y+d/2,h+rh),r2=P(x+w*.7,y+d/2,h+rh);
   quad([e[0],e[1],r2,r1],'#96462a');quad([e[0],e[3],r1],'#96462a');quad([e[1],e[2],r2],'#ad5633');quad([e[3],e[2],r2,r1],'#c96a40');
@@ -322,7 +317,6 @@ function person(e,isP){
   g.fillStyle='#f0c8a0';g.fillRect(X-r(3),Y-r(18),r(6),r(6));
   g.fillStyle=e.hair;g.fillRect(X-r(3),Y-r(19),r(6),r(2));
   g.fillStyle='#2a2020';g.fillRect(X-r(2),Y-r(15),r(1),r(1));g.fillRect(X+r(1),Y-r(15),r(1),r(1));
-  if(isP&&S.cooked&&!S.served){g.fillStyle='#fff';g.fillRect(X+r(3),Y-r(10),r(6),r(2));g.fillStyle='#c8743a';g.fillRect(X+r(4),Y-r(11),r(4),r(1));}
   if(isP&&e.busy){const w=r(18),k=e.busy.t/e.busy.d;g.fillStyle='#231a10';g.fillRect(X-w/2-1,Y-r(25)-1,w+2,5);g.fillStyle='#ffd35a';g.fillRect(X-w/2,Y-r(25),w*k,3);}
 }
 function people(list){
@@ -383,21 +377,10 @@ function drawHome(){
   topq(4.55,.15,6.95,2.9,0,'#a85a44');topq(4.7,.3,6.8,2.75,0,'#bb6b50');
   mat(HS.hmat);
   const sl=ents.filter(e=>e.scene==='home'&&e.lying),R=S.rooms.home,list=[];
-  list.push({d:1,f:()=>{
-    box(.15,.15,.8,.85,26,'#b98452','#a9743f','#946335');
-    if(!S.cooked&&S.phase!=='morning'&&S.phase!=='build'){const p=P(.55,.55,27);g.fillStyle='#d94f3a';g.fillRect(p[0]-6,p[1]-4,4,4);g.fillStyle='#6fae4a';g.fillRect(p[0],p[1]-5,5,5);g.fillStyle='#e9c46a';g.fillRect(p[0]-2,p[1]-1,4,3);}
-  }});
-  list.push({d:2.1,f:()=>{
-    box(1,.15,1,.85,28,'#55555d','#8f9096','#7c7d84');
-    const a=P(1.3,.5,28),b=P(1.7,.65,28);g.fillStyle='#26262b';g.fillRect(a[0]-4,a[1]-2,8,4);g.fillRect(b[0]-4,b[1]-2,8,4);
-    fy(1.15,1.85,1,6,20,'#3a3a40');
-    if(player.busy&&player.busy.k==='cook'){const t=player.busy.t;g.fillStyle='#ff9a3a';g.fillRect(a[0]-3,a[1]-4,6,2);g.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<3;i++)g.fillRect(a[0]-4+i*4,a[1]-8-((t*18+i*5)%14),2,3);}
-  }});
   list.push({d:6.35,f:()=>{
     for(const q of[[2.55,2.65],[3.83,2.65],[2.55,3.43],[3.83,3.43]])box(q[0],q[1],.12,.12,20,'#8a5f33','#8a5f33','#74502b');
     box(2.5,2.6,1.5,1,4,'#c99562','#a9743f','#946335',20);
-    if(S.served||S.dishes)for(const k of S.plates){const p=P(PLATES[k].x,PLATES[k].y,24);g.fillStyle=S.dishes?'#d9d4c8':'#fff';g.beginPath();g.ellipse(p[0],p[1],6,3,0,0,7);g.fill();g.fillStyle=S.dishes?'#8f7f66':'#c8743a';g.fillRect(p[0]-2,p[1]-2,S.dishes?2:5,2);}
-    const b=S.bookings.find(b=>b.room==='home');if(S.phase==='morning'&&b&&!b.paid)coins(3.2,3.4,25);
+    const b=S.bookings.find(b=>b.room==='home');if(b&&b.stage==='left'&&!b.paid)coins(3.2,3.4,25);
   }});
   if(R.cap===1)list.push({d:6.6,f:()=>bed(4.95,.25,1.8,1,1,R.bed,sl[0],1)});
   else{list.push({d:6.4,f:()=>bed(4.9,.25,.85,1.8,0,R.bed,sl[0])});list.push({d:7.5,f:()=>bed(5.95,.25,.85,1.8,0,R.bed,sl[1])});}
@@ -407,7 +390,7 @@ function drawAnnex(){
   room(4,4,1.6,2.5);mat(HS.amat);
   const sl=ents.filter(e=>e.scene==='annex'&&e.lying),list=[];
   list.push({d:1.9,f:()=>bed(.3,.25,.9,1.9,0,S.rooms.annex.bed,sl[0])});
-  list.push({d:3.6,f:()=>{box(2.8,.2,.6,.6,20,'#b98452','#a9743f','#946335');const b=S.bookings.find(b=>b.room==='annex');if(S.phase==='morning'&&b&&!b.paid)coins(3,.5,21);}});
+  list.push({d:3.6,f:()=>{box(2.8,.2,.6,.6,20,'#b98452','#a9743f','#946335');const b=S.bookings.find(b=>b.room==='annex');if(b&&b.stage==='left'&&!b.paid)coins(3,.5,21);}});
   people(list);
 }
 const TINT={day:[255,230,170,0],eve:[255,140,60,.14],night:[18,26,84,.5],morn:[255,240,190,.06]};
@@ -454,13 +437,16 @@ function modal(html,btns){
 let toastT=0;
 function toast(s){$('toast').innerHTML='';const sp=document.createElement('span');sp.textContent=s;$('toast').appendChild(sp);clearTimeout(toastT);toastT=setTimeout(()=>$('toast').innerHTML='',5200);}
 function goalText(){
-  const P=S.phase,R=S.rooms;
-  if(P==='ad')return S.day===1?'Напиши объявление и повесь его у дороги.':'Обнови объявление у дороги, чтобы позвать гостей.';
-  if(P==='arrive')return S.bookings.every(b=>b.stage==='door')?'Гости у двери — встреть и засели их.':'Отклик есть: гости идут по дороге. Встреть их у двери дома.';
-  if(P==='dinner')return!S.cooked?'Приготовь ужин на плите. Продуктов хватит ровно на '+gn()+' '+(gn()===1?'порцию':'порции')+'.':!S.served?'Поставь ужин на стол.':'Гости ужинают…';
-  if(P==='bed')return'Застели постель в каждом занятом номере.';
-  if(P==='night')return'Все спят. Можно перейти к утру.';
-  if(P==='morning')return'Забери оплату и убери каждый номер: посуда, бельё, подготовка.';
+  const P=S.phase,R=S.rooms,B=S.bookings,bare=R.home.bed==='bare';
+  if(P==='ad')return bare?'Застели '+(R.home.cap===1?'диван':'постели')+' и повесь объявление у дороги — в любом порядке.':'Номер готов. Повесь объявление у дороги.';
+  if(P==='arrive'){
+    const w=B.filter(b=>b.stage==='door'&&R[b.room].bed!=='made');
+    if(w.length)return'Гости ждут у входа. Осталось застелить: '+w.map(b=>roomName(b.room)).join(', ')+'. Потом передай ключ.';
+    if(B.some(b=>b.stage==='door'))return'Номер готов — передай ключ у двери.';
+    return B.some(b=>R[b.room].bed!=='made')?'Гости в пути. Застели постель до их прихода.':'Номер готов. Встреть гостей у двери и передай ключ.';
+  }
+  if(P==='night')return'Ключи у гостей, двери закрыты. Можно перейти к утру.';
+  if(P==='morning')return B.some(b=>b.stage==='sleep')?'Пара ещё спит, её номер закрыт. Убери пока освободившуюся пристройку.':'Ключ вернули. Забери оплату и сними бельё.';
   return R.home.cap===1?'Уборка закончена. Добавь в номер второе спальное место.':'Уборка закончена. Построй пристройку рядом с домом.';
 }
 function hud(){
@@ -469,17 +455,17 @@ function hud(){
   $('time').textContent='День '+(S.day+(S.phase==='morning'?1:0))+' · '+({day:'День',eve:'Вечер',night:'Ночь',morn:'Утро'})[tod()];
   const big=R.home.cap===1?'Большая цель: заработать на второе спальное место.':!R.annex.built?'Большая цель: заработать на одноместную пристройку.':'Два номера на трёх человек. Дальше — свободная игра.';
   $('goal').innerHTML='';const a=document.createElement('div');a.textContent=goalText();const b=document.createElement('small');b.textContent=big;$('goal').append(a,b);
-  const bedT={ready:'убран',made:'постель застелена',used:'нужна уборка',bare:'бельё снято'};
+  const bedT={made:'готов к заселению',used:'нужна уборка',bare:'не застелен'};
   $('rooms').innerHTML=['home','annex'].map(id=>{
     const r=R[id],bk=S.bookings.find(b=>b.room===id&&b.stage!=='left');
     if(!r.built)return'<div class="room off"><h3>Пристройка</h3>Земля под застройку · '+PRICE.annex+' монет</div>';
-    return'<div class="room"><h3>'+(id==='home'?'Номер в доме':'Пристройка')+'</h3>Мест: '+r.cap+' · '+r.rate+' монет за ночь<br>'+
-      (bk?(bk.n===2?'Забронирован парой':'Забронирован гостем'):'Свободен')+' · '+bedT[r.bed]+(id==='home'&&S.dishes?' · грязная посуда':'')+'</div>';
+    const st=!bk?'Свободен · '+bedT[r.bed]:bk.stage==='sleep'?'Занят · ключ у '+(bk.n===2?'пары':'гостя')+' · дверь закрыта':bk.stage==='door'?(bk.n===2?'Пара ждёт':'Гость ждёт')+' у входа · '+bedT[r.bed]:'Забронирован '+(bk.n===2?'парой':'гостем')+' · '+bedT[r.bed];
+    return'<div class="room"><h3>'+(id==='home'?'Номер в доме':'Пристройка')+'</h3>Мест: '+r.cap+' · '+r.rate+' монет за ночь<br>'+st+'</div>';
   }).join('');
   $('ledger').innerHTML='<tr><th>Момент</th><th class="n">Доход / расход</th><th class="n">Остаток</th></tr>'+
     S.ledger.map(l=>'<tr><td>'+l.t+'</td><td class="n">'+(l.d>0?'+'+l.d:l.d<0?'−'+(-l.d):'—')+'</td><td class="n">'+l.b+'</td></tr>').join('');
 }
-function intro(){toast('Это твой дом. Кликни по доске у дороги, чтобы позвать первого гостя.');}
+function intro(){toast('В твоём доме есть комната с отдельным входом. Застели диван и повесь объявление у дороги.');}
 
 // ---------- запуск ----------
 const saved=load();start(saved);if(!saved)intro();
