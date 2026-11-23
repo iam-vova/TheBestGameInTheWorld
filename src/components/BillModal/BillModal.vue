@@ -19,6 +19,10 @@ const { closeBill } = useGame();
         <td class="ui-table__cell">Ключ</td>
         <td class="ui-table__cell ui-table__cell--num">возвращён</td>
       </tr>
+      <tr v-if="bill.late">
+        <td class="ui-table__cell">Скидка за ожидание у двери</td>
+        <td class="ui-table__cell ui-table__cell--num">−{{ -bill.late }}</td>
+      </tr>
       <tr v-if="bill.tip">
         <td class="ui-table__cell">Событие: чаевые</td>
         <td class="ui-table__cell ui-table__cell--num">+{{ bill.tip }}</td>

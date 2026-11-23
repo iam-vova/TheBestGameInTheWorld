@@ -1,6 +1,8 @@
 import type { NightEvent, RoomId, SceneId } from './game';
 
-export type HotspotId = 'board' | 'hdoor' | 'adoor' | 'table' | 'hbed' | 'hmat' | 'abed' | 'astand' | 'amat' | 'stove';
+/** точки комнаты: дверь снаружи, кровать, место оплаты и коврик у выхода внутри */
+export type RoomSpot = 'door' | 'bed' | 'pay' | 'mat';
+export type HotspotId = 'board' | 'stove' | `${RoomId}:${RoomSpot}`;
 
 export interface HotspotPlace {
   scene: SceneId;
@@ -42,16 +44,19 @@ export interface Bill {
   tip: number;
   dinner: number;
   bar: number;
+  /** скидка за долгое ожидание у двери, отрицательное число */
+  late: number;
   ev?: NightEvent;
   total: number;
 }
 
-export type UpgradeStatus = 'done' | 'need' | 'busy' | 'poor' | 'ok';
+export type UpgradeStatus = 'hidden' | 'done' | 'need' | 'busy' | 'poor' | 'ok';
 
 export type Modal =
   | { type: 'ad' }
   | { type: 'bill'; bill: Bill }
   | { type: 'upgrades' }
+  | { type: 'build' }
   | { type: 'confirmNew' }
   | { type: 'message'; title: string; lines: string[]; ok: string };
 
@@ -59,4 +64,6 @@ export interface StageLabel {
   text: string;
   left: string;
   top: string;
+  /** цель за краем экрана: подпись прижата к краю и показывает направление */
+  edge: boolean;
 }

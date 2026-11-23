@@ -19,7 +19,7 @@
   &__label {
     position: absolute;
     transform: translate(-50%, -100%);
-    pointer-events: none;
+    cursor: pointer;
     background: rgba(42, 22, 51, 0.88);
     color: #ffe9b0;
     border: 1px solid $accent;
@@ -27,6 +27,12 @@
     padding: 1px 7px;
     font-size: 12px;
     white-space: nowrap;
+
+    &--edge {
+      background: $accent;
+      color: #2a1633;
+      font-weight: 600;
+    }
   }
 
   &__toast {

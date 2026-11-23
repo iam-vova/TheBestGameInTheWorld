@@ -1,5 +1,7 @@
 import { DEFAULT_AD, SAVE_KEY } from '@/data/balance';
-import type { GameState } from '@/models/game';
+import type { GameState, Room } from '@/models/game';
+
+const empty = (): Room => ({ built: false, cap: 1, rate: 30, bed: 'bare', minibar: 0 });
 
 export function createState(): GameState {
   return {
@@ -9,8 +11,10 @@ export function createState(): GameState {
     adText: DEFAULT_AD,
     posted: false,
     rooms: {
-      home: { built: true, cap: 1, rate: 30, bed: 'bare', minibar: 0 },
-      annex: { built: false, cap: 1, rate: 30, bed: 'bare', minibar: 0 },
+      home: { ...empty(), built: true },
+      annex: empty(),
+      cabin1: empty(),
+      cabin2: empty(),
     },
     bookings: [],
     won: false,

@@ -21,12 +21,12 @@ export function routeTo(a: Actor, scene: SceneId, x: number, y: number): PathSte
   const path: PathStep[] = [];
   if (a.scene !== scene) {
     if (a.scene !== 'out') {
-      const mat = HOTSPOTS[a.scene === 'home' ? 'hmat' : 'amat'];
+      const mat = HOTSPOTS[`${a.scene}:mat`];
       const [ox, oy] = DOOR_OUTSIDE[a.scene];
       path.push({ x: mat.ax, y: mat.ay }, { warp: 'out', x: ox, y: oy });
     }
     if (scene !== 'out') {
-      const door = HOTSPOTS[scene === 'home' ? 'hdoor' : 'adoor'];
+      const door = HOTSPOTS[`${scene}:door`];
       path.push({ x: door.ax, y: door.ay }, { warp: scene, x: SPAWN[scene][0], y: SPAWN[scene][1] });
     }
   }

@@ -46,4 +46,8 @@ export interface World {
   helper: Helper | null;
   guests: Guest[];
   nightTimer: number;
+  /** сколько секунд гости каждого номера уже ждут ключ у двери */
+  waits: Partial<Record<RoomId, number>>;
+  /** сдвиг камеры во дворе: карта шире экрана */
+  cam: { x: number; y: number };
 }

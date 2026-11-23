@@ -1,5 +1,6 @@
 // Сохраняемое состояние игры. Всё, что здесь, попадает в localStorage.
-export type RoomId = 'home' | 'annex';
+export type RoomId = 'home' | 'annex' | 'cabin1' | 'cabin2';
+export type RoomClass = 'economy' | 'standard' | 'premium';
 export type SceneId = 'out' | RoomId;
 export type Phase = 'ad' | 'arrive' | 'night' | 'morning';
 export type BedState = 'bare' | 'made' | 'used' | 'wrecked';
@@ -12,6 +13,8 @@ export interface Room {
   cap: number;
   rate: number;
   bed: BedState;
+  /** класс жилья у построенных домиков */
+  cls?: RoomClass;
   /** уровень мини-бара: 0 — не установлен */
   minibar: number;
 }
@@ -27,6 +30,8 @@ export interface Booking {
   /** исход случайного события, сохраняется вместе с бронированием */
   ev?: NightEvent;
   tip?: number;
+  /** гости слишком долго ждали ключ у двери — получат скидку */
+  late?: boolean;
   /** гости получили ужин вместе с ключом */
   dinner?: boolean;
   /** гости что-то купили в мини-баре; исход сохраняется с бронированием */

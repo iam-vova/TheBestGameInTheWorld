@@ -10,13 +10,14 @@ const { state, buy, closeModal } = useGame();
 
 const NOTE: Record<UpgradeStatus, string> = {
   ok: '',
+  hidden: '',
   done: 'Куплено',
   need: '',
   busy: 'Пока гости в номерах — нельзя',
   poor: 'Не хватает монет',
 };
 const items = computed(() =>
-  UPGRADES.map((u) => {
+  UPGRADES.filter((u) => upgradeStatus(state, u) !== 'hidden').map((u) => {
     const status = upgradeStatus(state, u);
     const need = UPGRADES.find((x) => x.id === u.need);
     return {

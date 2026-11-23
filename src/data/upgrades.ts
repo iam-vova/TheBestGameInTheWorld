@@ -1,7 +1,8 @@
 import type { GameState, RoomId } from '@/models/game';
 import { BALANCE } from './balance';
+import { ROOM_IDS, SITES } from './rooms';
 
-export type UpgradeId = 'bed' | 'annex' | 'helper' | 'kitchen' | 'minibar_home' | 'minibar_annex';
+export type UpgradeId = 'bed' | 'annex' | 'helper' | 'kitchen' | `minibar_${RoomId}`;
 
 export interface Upgrade {
   id: UpgradeId;
@@ -10,6 +11,8 @@ export interface Upgrade {
   text: (s: GameState) => string;
   price: (s: GameState) => number;
   need?: UpgradeId;
+  /** улучшение конкретного номера: показывается, когда номер построен */
+  room?: RoomId;
   done: (s: GameState) => boolean;
 }
 
@@ -17,7 +20,8 @@ const pct = (v: number): string => `${Math.round(v * 100)}%`;
 const { chance, price, sale } = BALANCE.minibar;
 const MAX_BAR = price.length;
 
-function minibar(room: RoomId, where: string): Upgrade {
+function minibar(room: RoomId): Upgrade {
+  const where = SITES[room].name;
   const level = (s: GameState) => s.rooms[room].minibar;
   return {
     id: `minibar_${room}`,
@@ -28,6 +32,7 @@ function minibar(room: RoomId, where: string): Upgrade {
         : `Шанс покупки за занятую ночь ${pct(chance[MAX_BAR])}, покупка добавляет ${sale} монет.`,
     price: (s) => price[level(s)] ?? 0,
     need: 'annex',
+    room,
     done: (s) => level(s) >= MAX_BAR,
   };
 }
@@ -51,8 +56,8 @@ export const UPGRADES: Upgrade[] = [
   {
     id: 'helper',
     title: () => 'Помощник',
-    text: () => 'Сам стелет постели, убирает номера после выезда и готовит на кухне. Ключи и оплата остаются за тобой.',
-    price: () => 50,
+    text: () => `Сам стелет постели, убирает номера после выезда и готовит на кухне. Ключи и оплата остаются за тобой. Смена стоит ${BALANCE.helperWage} монет за ночь.`,
+    price: () => 150,
     need: 'annex',
     done: (s) => s.helper,
   },
@@ -60,10 +65,9 @@ export const UPGRADES: Upgrade[] = [
     id: 'kitchen',
     title: () => 'Летняя кухня и ужины',
     text: () => `Приготовь ужин до заселения и передай вместе с ключом: +${BALANCE.dinnerFee} монет с гостя.`,
-    price: () => 40,
+    price: () => 300,
     need: 'annex',
     done: (s) => s.kitchen,
   },
-  minibar('home', 'номер в доме'),
-  minibar('annex', 'пристройка'),
+  ...ROOM_IDS.map(minibar),
 ];

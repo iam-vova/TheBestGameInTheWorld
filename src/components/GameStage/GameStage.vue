@@ -5,7 +5,7 @@ import { VIEW } from '@/data/scenes';
 import { drawFrame } from '@/render/renderer';
 import { spritesReady } from '@/render/sprites';
 
-const { state, world, toast, fading, labels, update, click } = useGame();
+const { state, world, toast, fading, labels, update, click, goToLabel } = useGame();
 const canvas = ref<HTMLCanvasElement | null>(null);
 let raf = 0;
 
@@ -43,7 +43,9 @@ function onPointerDown(ev: PointerEvent): void {
       v-for="(label, i) in labels"
       :key="i"
       class="game-stage__label"
+      :class="{ 'game-stage__label--edge': label.edge }"
       :style="{ left: label.left, top: label.top }"
+      @click="goToLabel(i)"
     >
       {{ label.text }}
     </div>

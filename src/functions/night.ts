@@ -7,9 +7,29 @@ export function makeBed(s: GameState, r: RoomId): void {
   s.rooms[r].bed = 'made';
 }
 
-/** снять бельё или восстановить номер после вечеринки */
+/** снять бельё */
 export function clearBed(s: GameState, r: RoomId): void {
   s.rooms[r].bed = 'bare';
+}
+
+/** восстановить номер после вечеринки: стоит денег, но не больше, чем есть в кошельке */
+export function repairRoom(s: GameState, r: RoomId): void {
+  const cost = Math.min(s.coins, BALANCE.repairCost);
+  if (cost) {
+    s.coins -= cost;
+    s.ledger.push({ t: `Ремонт после вечеринки, ${roomName(r)}`, d: -cost, b: s.coins });
+  }
+  s.rooms[r].bed = 'bare';
+}
+
+/**
+ * Гость ждёт ключ у двери. Если ждёт дольше терпения — получит скидку. Первые две ночи обучающие, без штрафа.
+ * Возвращает true в момент, когда терпение кончилось.
+ */
+export function waitAtDoor(s: GameState, b: Booking, waited: number): boolean {
+  if (b.late || b.stage !== 'door' || s.day < BALANCE.eventsFromDay || waited < BALANCE.patience) return false;
+  b.late = true;
+  return true;
 }
 
 /** Ключ передаётся только в застеленный номер. */
@@ -75,7 +95,7 @@ export function startMorning(s: GameState, rng: Rng): MorningResult {
   const head = story
     ? 'Утро. Анна и Марк вчера разговорились во дворе — и уезжают вместе.'
     : late
-      ? 'Утро. Гость из пристройки вернул ключ и уехал. Пара ещё спит.'
+      ? 'Утро. Гости вернули ключи и уехали. Пара в доме ещё спит.'
       : 'Утро. Ключ вернули, плата лежит в комнате.';
   return { left, message: head + notes };
 }
@@ -89,6 +109,7 @@ export function collectPayment(s: GameState, b: Booking): Bill | null {
   b.paid = true;
   s.coins += sum;
   s.ledger.push({ t: `Утро после ночи ${s.day}: ${who}, ${roomName(b.room)}`, d: sum, b: s.coins });
+  const late = b.late ? -Math.round(sum * BALANCE.lateDiscount) : 0;
   const dinner = b.dinner ? BALANCE.dinnerFee * b.n : 0;
   const bar = b.bar ? BALANCE.minibar.sale : 0;
   // доплаты учитываются отдельными строками, отдельно от гарантированной платы за ночлег
@@ -97,10 +118,11 @@ export function collectPayment(s: GameState, b: Booking): Bill | null {
     s.coins += d;
     s.ledger.push({ t: `${label}, ${roomName(b.room)}`, d, b: s.coins });
   };
+  extra('Скидка за ожидание у двери', late);
   extra('Событие: чаевые', tip);
   extra('Ужин', dinner);
   extra('Мини-бар', bar);
-  return { room: b.room, who, sum, tip, dinner, bar, ev: b.ev, total: sum + tip + dinner + bar };
+  return { room: b.room, who, sum, tip, dinner, bar, late, ev: b.ev, total: sum + tip + dinner + bar + late };
 }
 
 const isDone = (s: GameState, b: Booking): boolean =>
@@ -133,6 +155,11 @@ export function advanceMorning(s: GameState, rng: Rng): MorningStep {
   } else if (s.story === 3) {
     s.story = 4;
     note = ' История Анны и Марка: они познакомились у тебя и вернулись парой.';
+  }
+  if (s.helper) {
+    const wage = Math.min(s.coins, BALANCE.helperWage);
+    s.coins -= wage;
+    s.ledger.push({ t: 'Смена помощника', d: -wage, b: s.coins });
   }
   s.day++;
   makeBookings(s);

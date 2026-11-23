@@ -9,14 +9,21 @@ export const BALANCE = {
   /** с какой ночи может начаться история Анны и Марка */
   storyFromDay: 4,
   /** сколько секунд занимают действия хозяина */
-  duration: { makeBed: 1.2, strip: 1, repair: 3, cook: 2 },
+  duration: { makeBed: 2, strip: 1.5, repair: 4, cook: 3 },
   /** пауза перед наступлением утра, когда все легли */
   nightPause: 1.6,
   /** доплата за ужин с одного гостя */
   dinnerFee: 10,
+  /** помощник получает за каждую смену */
+  helperWage: 10,
+  /** сколько секунд гость готов ждать ключ у двери и какую долю платы за ночь теряет отель, если не дождался вовремя */
+  patience: 20,
+  lateDiscount: 0.2,
+  /** ремонт номера после вечеринки */
+  repairCost: 10,
   /** мини-бар: шанс покупки за занятую ночь по уровням 0..3, цена следующего уровня, доплата за покупку */
-  minibar: { chance: [0, 0.2, 0.35, 0.5], price: [30, 40, 60], sale: 10 },
+  minibar: { chance: [0, 0.2, 0.35, 0.5], price: [20, 25, 30], sale: 10 },
 };
 
 export const DEFAULT_AD = 'Сдам место на ночь';
-export const SAVE_KEY = 'farm-hotel-proto-v4';
+export const SAVE_KEY = 'farm-hotel-proto-v5';

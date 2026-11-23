@@ -1,5 +1,6 @@
 import type { BedState, GameState, RoomId } from '@/models/game';
 import { bookingWho, roomName } from './bookings';
+import { freePlots } from './build';
 
 export type TimeOfDay = 'day' | 'eve' | 'night' | 'morn';
 
@@ -32,14 +33,16 @@ export function goalText(s: GameState): string {
   }
   if (s.phase === 'night') return 'Ключи у гостей, двери закрыты. Наступает ночь…';
   return B.some((b) => b.stage === 'sleep')
-    ? 'Пара ещё спит, её номер закрыт. Убери пока освободившуюся пристройку.'
+    ? 'Пара в доме ещё спит, её номер закрыт. Убери пока освободившиеся номера.'
     : 'Ключ вернули. Забери оплату и сними бельё.';
 }
 
 export function bigGoal(s: GameState): string {
   if (s.rooms.home.cap === 1) return 'Большая цель: заработать на второе спальное место.';
   if (!s.rooms.annex.built) return 'Большая цель: заработать на одноместную пристройку.';
-  return 'Два номера на трёх человек. Дальше — свободная игра.';
+  const free = freePlots(s).length;
+  if (free) return `Большая цель: застроить участки (свободно ${free}). Домики трёх классов — в меню «Стройка».`;
+  return 'Все участки застроены. Дальше — улучшения номеров и свободная игра.';
 }
 
 const BED_TEXT: Record<BedState, string> = {
@@ -55,6 +58,6 @@ export function roomStatus(s: GameState, id: RoomId): string {
   const b = s.bookings.find((x) => x.room === id && x.stage !== 'left');
   if (!b) return `Свободен · ${bed}`;
   if (b.stage === 'sleep') return `Занят · ${bookingWho(b)} · ключ у гостей, дверь закрыта`;
-  if (b.stage === 'door') return `${b.n === 2 ? 'Пара ждёт' : 'Гость ждёт'} у входа · ${bed}`;
+  if (b.stage === 'door') return `${b.n === 2 ? 'Пара ждёт' : 'Гость ждёт'} у входа${b.late ? ' — заждались, будет скидка' : ''} · ${bed}`;
   return `Забронирован ${b.n === 2 ? 'парой' : 'гостем'} · ${bed}`;
 }

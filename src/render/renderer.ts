@@ -1,11 +1,12 @@
-import { SCENES, VIEW } from '@/data/scenes';
+import { VIEW } from '@/data/scenes';
+import { viewOf } from '@/functions/camera';
 import { timeOfDay, type TimeOfDay } from '@/functions/texts';
 import type { GameState } from '@/models/game';
 import type { Hotspot } from '@/models/ui';
 import type { World } from '@/models/world';
 import { P, pen } from './canvas';
 import { drawOutside } from './outside';
-import { drawAnnex, drawHome } from './rooms';
+import { drawCabin, drawHome } from './rooms';
 
 /** цвет и сила затемнения сцены по времени суток: [r, g, b, alpha] */
 const TINT: Record<TimeOfDay, number[]> = {
@@ -39,7 +40,7 @@ function drawMarker(h: Hotspot, i: number, t: number): void {
 export function drawFrame(ctx: CanvasRenderingContext2D, s: GameState, world: World, marks: Hotspot[], t: number): void {
   const scene = world.player.scene;
   pen.ctx = ctx;
-  pen.sc = SCENES[scene];
+  pen.sc = viewOf(scene, world.cam);
   ctx.setTransform(VIEW.scale, 0, 0, VIEW.scale, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = scene === 'out' ? '#2c3f2f' : '#231a2c';
@@ -47,7 +48,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, s: GameState, world: Wo
 
   if (scene === 'out') drawOutside(s, world);
   else if (scene === 'home') drawHome(s, world);
-  else drawAnnex(s, world);
+  else drawCabin(s, world, scene);
 
   const target = TINT[timeOfDay(s)];
   for (let i = 0; i < 4; i++) tint[i] += (target[i] - tint[i]) * 0.06;

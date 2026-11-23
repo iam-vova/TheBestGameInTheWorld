@@ -7,6 +7,7 @@ import LedgerPanel from '@/components/LedgerPanel/LedgerPanel.vue';
 import AdModal from '@/components/AdModal/AdModal.vue';
 import BillModal from '@/components/BillModal/BillModal.vue';
 import UpgradesModal from '@/components/UpgradesModal/UpgradesModal.vue';
+import BuildModal from '@/components/BuildModal/BuildModal.vue';
 import MessageModal from '@/components/MessageModal/MessageModal.vue';
 import { useGame } from '@/composables/useGame';
 
@@ -27,6 +28,7 @@ const { modal, closeModal, newGame } = useGame();
     <AdModal v-if="modal?.type === 'ad'" />
     <BillModal v-else-if="modal?.type === 'bill'" :bill="modal.bill" />
     <UpgradesModal v-else-if="modal?.type === 'upgrades'" />
+    <BuildModal v-else-if="modal?.type === 'build'" />
     <MessageModal
       v-else-if="modal?.type === 'message'"
       :title="modal.title"

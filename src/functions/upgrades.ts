@@ -4,6 +4,7 @@ import type { UpgradeStatus } from '@/models/ui';
 import { hasGuests, makeBookings } from './bookings';
 
 export function upgradeStatus(s: GameState, u: Upgrade): UpgradeStatus {
+  if (u.room && !s.rooms[u.room].built) return 'hidden';
   if (u.done(s)) return 'done';
   const need = u.need && UPGRADES.find((x) => x.id === u.need);
   if (need && !need.done(s)) return 'need';
@@ -34,7 +35,7 @@ export function buyUpgrade(s: GameState, id: UpgradeId): { rebooked: boolean } |
   } else {
     if (id === 'helper') s.helper = true;
     else if (id === 'kitchen') s.kitchen = true;
-    else s.rooms[id === 'minibar_home' ? 'home' : 'annex'].minibar++;
+    else if (u.room) s.rooms[u.room].minibar++;
     s.ledger.push({ t: title, d: -price, b: s.coins });
     return { rebooked: false };
   }

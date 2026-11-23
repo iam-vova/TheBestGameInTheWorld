@@ -1,10 +1,11 @@
 import { BALANCE } from '@/data/balance';
+import { ROOM_IDS, SITES } from '@/data/rooms';
 import { CAST_NAMES } from '@/data/sprites';
 import type { Booking, GameState, RoomId } from '@/models/game';
 
-export const ROOM_IDS: RoomId[] = ['home', 'annex'];
+export const roomName = (r: RoomId): string => SITES[r].name;
 
-export const roomName = (r: RoomId): string => (r === 'home' ? 'номер в доме' : 'пристройка');
+export const builtRooms = (s: GameState): RoomId[] => ROOM_IDS.filter((r) => s.rooms[r].built);
 
 export const bookingWho = (b: Booking): string =>
   b.cast ? b.cast.map((n) => CAST_NAMES[n]).join(' и ') : b.n === 2 ? 'пара' : 'гость';
@@ -21,11 +22,10 @@ export const findBooking = (s: GameState, r: RoomId): Booking | undefined => s.b
 
 /** Объявление работает само: на каждый вечер по одному бронированию на построенный номер. */
 export function makeBookings(s: GameState): void {
-  const home: Booking = { id: 'home', room: 'home', n: s.rooms.home.cap, stage: 'coming', paid: false };
-  s.bookings = [home];
-  if (s.rooms.annex.built) {
-    const annex: Booking = { id: 'annex', room: 'annex', n: 1, stage: 'coming', paid: false };
-    s.bookings.push(annex);
+  s.bookings = builtRooms(s).map((r) => ({ id: r, room: r, n: s.rooms[r].cap, stage: 'coming', paid: false }));
+  const home = findBooking(s, 'home');
+  const annex = findBooking(s, 'annex');
+  if (home && annex) {
     if (s.story === 0 && s.day >= BALANCE.storyFromDay) {
       home.n = 1;
       home.cast = ['anna'];

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeBookings } from '@/functions/bookings';
 import { createHelper, routeTo, stepHelper } from '@/functions/helper';
-import { checkOut, collectPayment, cookDinner, giveKey, startMorning } from '@/functions/night';
+import { checkOut, collectPayment, cookDinner, giveKey, startMorning, waitAtDoor } from '@/functions/night';
 import { createState } from '@/functions/state';
 import { getTasks } from '@/functions/tasks';
 import { buyUpgrade } from '@/functions/upgrades';
@@ -57,7 +57,7 @@ describe('мини-бар', () => {
   it('уровни 20 / 35 / 50 %, цена и шанс видны до покупки', () => {
     const s = hotel();
     expect(buyUpgrade(s, 'minibar_home')).not.toBeNull();
-    expect(s.coins).toBe(470);
+    expect(s.coins).toBe(480);
     buyUpgrade(s, 'minibar_home');
     buyUpgrade(s, 'minibar_home');
     expect(s.rooms.home.minibar).toBe(3);
@@ -130,5 +130,28 @@ describe('помощник', () => {
     h.scene = 'home';
     const path = routeTo(h, 'annex', 1, 1);
     expect(path.filter((p) => 'warp' in p).map((p) => ('warp' in p ? p.warp : ''))).toEqual(['out', 'annex']);
+  });
+});
+
+describe('терпение гостей', () => {
+  it('кто ждал ключ дольше 20 секунд, получает скидку 20 % от платы за ночь', () => {
+    const s = hotel();
+    const [home] = s.bookings;
+    home.stage = 'door';
+    expect(waitAtDoor(s, home, 19)).toBe(false);
+    expect(waitAtDoor(s, home, 21)).toBe(true);
+    expect(waitAtDoor(s, home, 30)).toBe(false); // срабатывает один раз
+    s.rooms.home.bed = 'made';
+    giveKey(s, home);
+    checkOut(s, home, () => 0.99);
+    expect(collectPayment(s, home)).toMatchObject({ sum: 50, late: -10, total: 40 });
+    expect(s.ledger.at(-1)).toMatchObject({ d: -10 });
+  });
+
+  it('в первые две ночи ожидание не штрафуется', () => {
+    const s = createState();
+    makeBookings(s);
+    s.bookings[0].stage = 'door';
+    expect(waitAtDoor(s, s.bookings[0], 100)).toBe(false);
   });
 });

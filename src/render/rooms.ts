@@ -14,7 +14,7 @@ const SKY: Record<TimeOfDay, string | null> = {
   morn: 'rgba(255, 244, 200, 0.35)',
 };
 
-function shell(room: RoomId, winX0: number, winX1: number, sky: string | null): void {
+function shell(room: 'home' | 'annex', winX0: number, winX1: number, sky: string | null): void {
   drawSprite(room === 'home' ? 'shell_home' : 'shell_annex', 0, 0);
   if (sky) wallX(winX0, winX1, 0, 27, 53, sky);
 }
@@ -41,7 +41,7 @@ export function drawHome(s: GameState, world: World): void {
       depth: 6.35,
       draw: () => {
         drawSprite('table', 3.25, 3.1);
-        if (paymentWaits(s, 'home')) drawSprite('coins', 3.3, 3.4, 25);
+        if (paymentWaits(s, 'home')) drawSprite('coins', 3.3, 3.4, 24);
       },
     },
   ];
@@ -54,22 +54,23 @@ export function drawHome(s: GameState, world: World): void {
   drawWithPeople(list, world);
 }
 
-export function drawAnnex(s: GameState, world: World): void {
-  const room = s.rooms.annex;
+/** Пристройка и домики: одна планировка, одна или две кровати по вместимости. */
+export function drawCabin(s: GameState, world: World, id: RoomId): void {
+  const room = s.rooms[id];
+  const asleep = sleeping(world, id);
   shell('annex', 1.6, 2.5, SKY[timeOfDay(s)]);
-  if (room.bed === 'wrecked') drawSprite('mess', 2.2, 2.8);
-  drawWithPeople(
-    [
-      { depth: 1.9, draw: () => bed('bed', 0.3, 0.25, room.bed, sleeping(world, 'annex') > 0) },
-      ...(room.minibar ? [{ depth: 2.4, draw: () => drawSprite('minibar', 1.95, 0.5) }] : []),
-      {
-        depth: 3.6,
-        draw: () => {
-          drawSprite('nightstand', 3.1, 0.5);
-          if (paymentWaits(s, 'annex')) drawSprite('coins', 3.1, 0.5, 21);
-        },
+  if (room.bed === 'wrecked') drawSprite('mess', 2.2, 2.9);
+  const list: Drawable[] = [
+    { depth: 1.9, draw: () => bed('bed', 0.3, 0.25, room.bed, asleep > 0) },
+    {
+      depth: 3.6,
+      draw: () => {
+        drawSprite('nightstand', 3.1, 0.5);
+        if (paymentWaits(s, id)) drawSprite('coins', 3.1, 0.5, 21);
       },
-    ],
-    world,
-  );
+    },
+  ];
+  if (room.cap > 1) list.push({ depth: 2.9, draw: () => bed('bed', 1.3, 0.25, room.bed, asleep > 1) });
+  if (room.minibar) list.push({ depth: 3.3, draw: () => drawSprite('minibar', room.cap > 1 ? 2.65 : 1.95, 0.5) });
+  drawWithPeople(list, world);
 }
