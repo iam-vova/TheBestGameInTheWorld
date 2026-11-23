@@ -1,0 +1,13 @@
+@use '../../styles/vars' as *;
+
+.game-app {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 12px;
+
+  &__hint {
+    color: $text-dim;
+    font-size: 13px;
+    margin: 8px 0 0;
+  }
+}

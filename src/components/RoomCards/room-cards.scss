@@ -1,0 +1,27 @@
+@use '../../styles/vars' as *;
+
+.room-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+
+  &__card {
+    flex: 1 1 220px;
+    background: $panel;
+    border: 1px solid $border;
+    border-radius: 6px;
+    padding: 8px 12px;
+
+    &--empty {
+      opacity: 0.6;
+      border-style: dashed;
+    }
+  }
+
+  &__title {
+    margin: 0 0 2px;
+    font-size: 14px;
+    color: $accent-light;
+  }
+}

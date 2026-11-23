@@ -1,0 +1,21 @@
+@use 'vars' as *;
+
+.ui-table {
+  border-collapse: collapse;
+  width: 100%;
+
+  &__cell {
+    padding: 3px 6px;
+    border-bottom: 1px solid #54406a;
+    text-align: left;
+
+    &--num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &--paper &__cell {
+    border-color: $paper-line;
+  }
+}

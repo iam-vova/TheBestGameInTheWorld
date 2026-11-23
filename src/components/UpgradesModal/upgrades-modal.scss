@@ -1,0 +1,24 @@
+@use '../../styles/vars' as *;
+
+.upgrades-modal {
+  &__item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid $paper-line;
+
+    &--off {
+      opacity: 0.55;
+    }
+  }
+
+  &__info {
+    flex: 1;
+  }
+
+  &__text {
+    display: block;
+    color: #6d5580;
+  }
+}

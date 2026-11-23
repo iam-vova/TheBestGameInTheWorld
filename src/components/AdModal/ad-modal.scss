@@ -1,0 +1,13 @@
+@use '../../styles/vars' as *;
+
+.ad-modal {
+  &__text {
+    width: 100%;
+    font: inherit;
+    padding: 8px;
+    border: 1px solid $purple;
+    border-radius: 4px;
+    background: #fff7fa;
+    resize: none;
+  }
+}

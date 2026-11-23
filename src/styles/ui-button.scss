@@ -1,0 +1,46 @@
+@use 'vars' as *;
+
+.ui-button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid $border-light;
+  background: #4b3a5e;
+  color: $text;
+  padding: 6px 12px;
+
+  &:hover {
+    background: #5e4a76;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &--primary {
+    background: $accent;
+    border-color: $accent-light;
+    color: #2a1633;
+    font-weight: 600;
+
+    &:hover {
+      background: #e88db0;
+    }
+  }
+
+  // кнопка на светлой «бумаге» модального окна
+  &--paper {
+    background: #f1d3df;
+    color: $ink;
+    border-color: $purple;
+
+    &:hover {
+      background: #f6dde7;
+    }
+  }
+
+  &--paper#{&}--primary {
+    background: $accent;
+  }
+}
