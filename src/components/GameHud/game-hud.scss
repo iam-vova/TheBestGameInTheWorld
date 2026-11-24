@@ -1,0 +1,128 @@
+@use '../../styles/vars' as *;
+
+// Игровой интерфейс поверх сцены. Сам слой клики пропускает, ловят их только кнопки
+.game-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  &__top {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  &__gap {
+    flex: 1;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    font: inherit;
+    font-weight: 600;
+    color: $text;
+    background: rgba(42, 22, 51, 0.9);
+    border: 2px solid $ink;
+    border-radius: 17px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    white-space: nowrap;
+
+    &--coins {
+      pointer-events: auto;
+      cursor: pointer;
+      color: $gold;
+    }
+  }
+
+  // число подпрыгивает при каждом изменении
+  &__coins {
+    display: inline-block;
+    animation: game-hud-pop 0.35s;
+  }
+
+  &__btn {
+    pointer-events: auto;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: $ink;
+    background: #f1d3df;
+    border: 2px solid $ink;
+    border-radius: 10px;
+    box-shadow: 0 3px 0 $ink;
+
+    &:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    &--small {
+      width: 34px;
+      height: 34px;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    // есть что купить
+    &--hot {
+      background: $gold;
+
+      &::after {
+        content: '!';
+        position: absolute;
+        right: -7px;
+        top: -7px;
+        width: 18px;
+        height: 18px;
+        font: 600 14px/14px 'Pixelify Sans', sans-serif;
+        color: #fff;
+        background: #e0457b;
+        border: 2px solid $ink;
+        border-radius: 50%;
+        // прыгает только значок: сама кнопка стоит на месте, по ней легко попасть
+        animation: game-hud-bounce 0.9s infinite;
+      }
+    }
+  }
+
+  &__goal {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    max-width: calc(100% - 16px);
+    padding: 5px 16px;
+    font-weight: 600;
+    font-size: 19px;
+    color: $ink;
+    background: $gold;
+    border: 2px solid $ink;
+    border-radius: 8px;
+    box-shadow: 0 3px 0 $ink;
+    white-space: nowrap;
+    animation: game-hud-pop 0.35s;
+  }
+}
+
+@keyframes game-hud-pop {
+  40% {
+    scale: 1.25;
+  }
+}
+
+@keyframes game-hud-bounce {
+  50% {
+    translate: 0 -3px;
+  }
+}

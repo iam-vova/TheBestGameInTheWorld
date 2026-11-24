@@ -1,14 +1,6 @@
-@use '../../styles/vars' as *;
-
 .game-app {
-  // 960 px канвы, рамка сцены и поля
+  // 960 px канвы и рамка сцены
   max-width: 988px;
   margin: 0 auto;
   padding: 12px;
-
-  &__hint {
-    color: $text-dim;
-    font-size: 13px;
-    margin: 8px 0 0;
-  }
 }

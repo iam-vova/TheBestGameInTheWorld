@@ -4,7 +4,8 @@ import { BALANCE, DEFAULT_AD } from '@/data/balance';
 import { getObstacles } from '@/data/obstacles';
 import { DOOR_OUTSIDE, SPAWN, VIEW } from '@/data/scenes';
 import type { UpgradeId } from '@/data/upgrades';
-import { findBooking, makeBookings, roomName } from '@/functions/bookings';
+import { findBooking, makeBookings } from '@/functions/bookings';
+import { SITES } from '@/data/rooms';
 import { buildCabin } from '@/functions/build';
 import { followPlayer, viewOf } from '@/functions/camera';
 import { clamp, project, unproject } from '@/functions/iso';
@@ -47,10 +48,8 @@ let toastTimer = 0;
 function showToast(text: string): void {
   toast.value = text;
   clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => (toast.value = ''), 5200);
+  toastTimer = window.setTimeout(() => (toast.value = ''), 3500);
 }
-
-const INTRO = 'В твоём доме есть комната с отдельным входом. Застели диван и повесь объявление у дороги.';
 
 function newGame(): void {
   Object.assign(state, createState());
@@ -60,7 +59,6 @@ function newGame(): void {
   followPlayer(world, true);
   modal.value = null;
   commit();
-  showToast(INTRO);
 }
 
 function go(scene: SceneId, x: number, y: number): void {
@@ -84,7 +82,7 @@ function postAd(text: string): void {
   world.guests = placeGuests(state);
   modal.value = null;
   commit();
-  showToast('Объявление висит у дороги и работает само: гости будут приезжать каждый вечер. Первый уже в пути.');
+  showToast('Объявление висит. Гости уже едут!');
 }
 
 /** После каждого шага утренней уборки проверяем, не пора ли выпускать пару или начинать новый день. */
@@ -117,7 +115,7 @@ function runTask(task: Task): void {
       giveKey(state, booking);
       sendToBed(world.guests, booking);
       commit();
-      showToast(`Ключ у ${booking.n === 2 ? 'пары' : 'гостя'} (${roomName(room)}). До выезда эта дверь для тебя закрыта.`);
+      showToast('Ключ отдан. Дверь закрыта до утра.');
       break;
     case 'collect': {
       const bill = booking && collectPayment(state, booking);
@@ -135,7 +133,7 @@ function finishWork(task: Task): void {
   if (task.kind === 'makeBed') makeBed(state, room);
   else if (task.kind === 'cook') {
     cookDinner(state);
-    showToast('Ужин готов. Он уйдёт гостям вместе с ключом.');
+    showToast('Ужин готов!');
   } else if (task.kind === 'strip' || task.kind === 'repair') {
     if (task.kind === 'repair') repairRoom(state, room);
     else clearBed(state, room);
@@ -157,10 +155,10 @@ function runAction(action: Action): void {
       go('out', ...DOOR_OUTSIDE[action.from]);
       break;
     case 'locked':
-      showToast('Номер занят: ключ у гостей, до выезда дверь закрыта.');
+      showToast('Занято — ключ у гостей.');
       break;
     case 'boardInfo':
-      showToast(`«${state.adText}» — объявление висит и само зовёт гостей каждый вечер.`);
+      showToast(`«${state.adText}»`);
       break;
   }
 }
@@ -178,19 +176,16 @@ function buy(id: UpgradeId): void {
   if (id === 'helper') world.helper = createHelper();
   if (id === 'bed') {
     modal.value = null;
-    showToast(`Номер стал двухместным, 50 за ночь. ${result.booked ? 'Объявление обновилось само — теперь едет пара. Застели кровати.' : 'Пара приедет со следующего вечера.'}`);
+    showToast(result.booked ? 'Две кровати! Едет пара — застели.' : 'Две кровати! Пара приедет завтра.');
   } else if (id !== 'annex') {
     // меню остаётся открытым: видно, что куплено и на что ещё хватает
-    if (id === 'helper') showToast('Помощник нанят: постели, уборка и кухня теперь на нём.');
+    if (id === 'helper') showToast('Помощник нанят!');
   } else {
     modal.value = {
       type: 'message',
-      title: 'Первый прототип пройден',
-      lines: [
-        'Две ночи позади, на выручку куплена пристройка. Теперь у тебя два номера на трёх человек.',
-        'Объявление обновилось само: в пристройку будет приезжать одиночный гость. У каждого номера свой ключ: застели оба, а утром убирай тот, что освободился первым.',
-      ],
-      ok: 'Продолжить',
+      title: '🏠 Пристройка готова!',
+      lines: ['Теперь у тебя два номера. У каждого свой ключ.'],
+      ok: 'Дальше',
     };
   }
 }
@@ -207,7 +202,7 @@ function build(plot: RoomId, cls: RoomClass): void {
   if (result.booked) arrive(plot);
   commit();
   modal.value = null;
-  showToast(`Построен ${roomName(plot)}. ${result.booked ? 'Объявление обновилось само — гости приедут уже сегодня. Застели постель.' : 'Гости приедут в него со следующего вечера.'}`);
+  showToast(result.booked ? 'Домик построен! Гости уже едут — застели.' : 'Домик построен! Гости приедут завтра.');
 }
 
 function toMorning(): void {
@@ -234,9 +229,9 @@ function syncLabels(marks: Hotspot[]): void {
     const x = (p[0] / VIEW.w) * 100;
     const y = ((p[1] - 13) / VIEW.h) * 100;
     // цель за краем экрана прижимаем к краю со стрелкой — по подписи можно кликнуть и пойти туда
-    const edge = x < 4 || x > 96 || y < 6 || y > 100;
+    const edge = x < 4 || x > 96 || y < 12 || y > 92;
     const text = edge ? (x > 96 ? `${h.label} →` : x < 4 ? `← ${h.label}` : `${h.label}`) : (h.label ?? '');
-    return { text, left: `${clamp(x, 9, 91).toFixed(3)}%`, top: `${clamp(y, 9, 97).toFixed(3)}%`, edge };
+    return { text, left: `${clamp(x, 9, 91).toFixed(3)}%`, top: `${clamp(y, 16, 88).toFixed(3)}%`, edge };
   });
   if (JSON.stringify(next) !== JSON.stringify(labels.value)) labels.value = next;
 }
@@ -274,7 +269,7 @@ function update(dt: number): Hotspot[] {
       const waited = (world.waits[b.room] = (world.waits[b.room] ?? 0) + dt);
       if (waitAtDoor(state, b, waited)) {
         commit();
-        showToast(`${b.n === 2 ? 'Пара' : 'Гость'} (${roomName(b.room)}) заждались ключа — утром попросят скидку.`);
+        showToast(`${SITES[b.room].title}: заждались ключа — будет скидка.`);
       }
     } else world.waits[b.room] = 0;
     if (b.stage !== 'coming') continue;
@@ -327,8 +322,6 @@ function walkTo(h: Hotspot): void {
   world.player.then = () => runAction(h.action);
 }
 
-if (!saved) showToast(INTRO);
-
 export function useGame() {
   return {
     state, world, toast, modal, fading, labels, forcedRolls,
@@ -340,6 +333,7 @@ export function useGame() {
     openBuild: () => (modal.value = { type: 'build' }),
     openUpgrades: () => (modal.value = { type: 'upgrades' }),
     askNewGame: () => (modal.value = { type: 'confirmNew' }),
+    openLedger: () => (modal.value = { type: 'ledger' }),
     closeModal: () => (modal.value = null),
   };
 }

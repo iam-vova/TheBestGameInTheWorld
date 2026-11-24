@@ -58,6 +58,7 @@ export type Modal =
   | { type: 'upgrades' }
   | { type: 'build' }
   | { type: 'confirmNew' }
+  | { type: 'ledger' }
   | { type: 'message'; title: string; lines: string[]; ok: string };
 
 export interface StageLabel {

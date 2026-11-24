@@ -9,11 +9,10 @@ const text = ref(state.adText);
 
 <template>
   <GameModal title="Объявление">
-    <p>Что написать на листке у дороги?</p>
     <textarea v-model="text" class="ad-modal__text" rows="3" maxlength="90" />
     <template #actions>
-      <button class="ui-button ui-button--paper" @click="closeModal">Отмена</button>
-      <button class="ui-button ui-button--paper ui-button--primary" data-ok @click="postAd(text)">Расклеить</button>
+      <button class="ui-button" @click="closeModal">Отмена</button>
+      <button class="ui-button ui-button--primary" data-ok @click="postAd(text)">Повесить</button>
     </template>
   </GameModal>
 </template>

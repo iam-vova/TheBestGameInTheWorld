@@ -93,10 +93,10 @@ export function startMorning(s: GameState, rng: Rng): MorningResult {
     left.push(b);
   }
   const head = story
-    ? 'Утро. Анна и Марк вчера разговорились во дворе — и уезжают вместе.'
+    ? 'Анна и Марк уезжают вместе.'
     : late
-      ? 'Утро. Гости вернули ключи и уехали. Пара в доме ещё спит.'
-      : 'Утро. Ключ вернули, плата лежит в комнате.';
+      ? 'Утро. Пара в доме ещё спит.'
+      : 'Утро. Плата ждёт в комнате.';
   return { left, message: head + notes };
 }
 
@@ -143,7 +143,7 @@ export function advanceMorning(s: GameState, rng: Rng): MorningStep {
     return {
       type: 'lateLeft',
       booking: late,
-      message: 'Пара проснулась, вернула ключ и уехала. Номер в доме снова можно открыть.' + note,
+      message: 'Пара уехала — дом открыт.' + note,
     };
   }
   if (!s.bookings.every((b) => isDone(s, b))) return { type: 'none' };
@@ -151,10 +151,10 @@ export function advanceMorning(s: GameState, rng: Rng): MorningStep {
   if (s.story === 1) {
     s.story = 2;
     s.storyDay = s.day + 1;
-    note = ' Кажется, Анна и Марк ещё вернутся.';
+    note = ' Анна и Марк ещё вернутся.';
   } else if (s.story === 3) {
     s.story = 4;
-    note = ' История Анны и Марка: они познакомились у тебя и вернулись парой.';
+    note = '';
   }
   if (s.helper) {
     const wage = Math.min(s.coins, BALANCE.helperWage);
@@ -165,7 +165,7 @@ export function advanceMorning(s: GameState, rng: Rng): MorningStep {
   makeBookings(s);
   const message =
     s.story === 3
-      ? 'Знакомые лица: Анна и Марк возвращаются — уже парой, в один номер.'
-      : `Уборка закончена. По объявлению уже едут новые гости: ${arrivingWho(s)}.${note}`;
+      ? 'Анна и Марк возвращаются — уже парой!'
+      : `Новый день. Едут: ${arrivingWho(s)}.${note}`;
   return { type: 'newDay', message };
 }

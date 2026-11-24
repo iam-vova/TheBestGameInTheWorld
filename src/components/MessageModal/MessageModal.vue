@@ -7,10 +7,12 @@ defineEmits<{ ok: []; cancel: [] }>();
 
 <template>
   <GameModal :title="title">
-    <p v-for="(line, i) in lines" :key="i">{{ line }}</p>
+    <p v-for="(line, i) in lines" :key="i" class="message-modal__line">{{ line }}</p>
     <template #actions>
-      <button v-if="cancel" class="ui-button ui-button--paper" @click="$emit('cancel')">{{ cancel }}</button>
-      <button class="ui-button ui-button--paper ui-button--primary" data-ok @click="$emit('ok')">{{ ok }}</button>
+      <button v-if="cancel" class="ui-button" @click="$emit('cancel')">{{ cancel }}</button>
+      <button class="ui-button ui-button--primary" data-ok @click="$emit('ok')">{{ ok }}</button>
     </template>
   </GameModal>
 </template>
+
+<style lang="scss" src="./component.scss"></style>

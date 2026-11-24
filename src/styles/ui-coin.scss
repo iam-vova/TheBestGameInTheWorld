@@ -1,0 +1,14 @@
+@use 'vars' as *;
+
+// монета вместо слова «монет»
+.ui-coin {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  flex: none;
+  vertical-align: -0.05em;
+  background: $gold;
+  border: 2px solid #a8651a;
+  border-radius: 50%;
+  box-shadow: inset -2px -2px 0 #e0a52e;
+}

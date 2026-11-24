@@ -7,7 +7,7 @@
   max-width: 100%;
   margin: 0 auto;
   border: 2px solid $border;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
   background: #1f2a22;
   touch-action: manipulation;
@@ -24,18 +24,18 @@
     position: absolute;
     transform: translate(-50%, -100%);
     cursor: pointer;
-    background: rgba(42, 22, 51, 0.88);
-    color: #ffe9b0;
-    border: 1px solid $accent;
-    border-radius: 4px;
-    padding: 1px 7px;
-    font-size: 12px;
+    background: #fff6dc;
+    color: $ink;
+    border: 2px solid $ink;
+    border-radius: 6px;
+    box-shadow: 0 2px 0 $ink;
+    padding: 0 7px;
+    font-size: 15px;
+    font-weight: 600;
     white-space: nowrap;
 
     &--edge {
-      background: $accent;
-      color: #2a1633;
-      font-weight: 600;
+      background: $accent-light;
     }
   }
 
@@ -43,7 +43,7 @@
     position: absolute;
     left: 8px;
     right: 8px;
-    top: 8px;
+    top: 54px;
     text-align: center;
     pointer-events: none;
   }
@@ -51,9 +51,9 @@
   &__toast-text {
     display: inline-block;
     background: rgba(42, 22, 51, 0.92);
-    border: 1px solid $border-light;
-    border-radius: 6px;
-    padding: 5px 12px;
+    border: 2px solid $ink;
+    border-radius: 8px;
+    padding: 4px 14px;
   }
 
   &__fade {

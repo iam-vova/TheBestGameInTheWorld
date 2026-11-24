@@ -3,33 +3,56 @@
 .build-modal {
   &__plots {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin-bottom: 4px;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 10px;
   }
 
   &__plot {
+    font: inherit;
     cursor: pointer;
-  }
+    color: $ink;
+    background: transparent;
+    border: 2px solid $ink;
+    border-radius: 6px;
+    padding: 1px 10px;
 
-  &__card {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid $paper-line;
-
-    &--off {
-      opacity: 0.55;
+    &--on {
+      background: $accent-light;
+      font-weight: 600;
     }
   }
 
-  &__info {
-    flex: 1;
+  &__full {
+    text-align: center;
+    margin: 0 0 10px;
   }
 
-  &__text {
-    display: block;
+  &__cards {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 4px;
+    background: #fff;
+    border: 2px solid $ink;
+    border-radius: 8px;
+  }
+
+  &__beds {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  &__rate {
     color: #6d5580;
+    font-size: 15px;
+    margin-bottom: 4px;
   }
 }

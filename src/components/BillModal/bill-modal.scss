@@ -1,0 +1,25 @@
+@use '../../styles/vars' as *;
+
+.bill-modal {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+
+  &__icon {
+    width: 32px;
+  }
+
+  &__num {
+    text-align: right;
+    font-weight: 600;
+  }
+
+  &__total {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 2px dashed $ink;
+    text-align: center;
+    font-size: 30px;
+    font-weight: 600;
+  }
+}

@@ -5,20 +5,36 @@
     display: flex;
     gap: 10px;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid $paper-line;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 2px solid $ink;
+    border-radius: 8px;
 
-    &--off {
-      opacity: 0.55;
+    &--done {
+      background: transparent;
+      border-style: dashed;
+      opacity: 0.6;
     }
+  }
+
+  &__icon {
+    font-size: 26px;
+    line-height: 1;
   }
 
   &__info {
     flex: 1;
+    line-height: 1.15;
   }
 
   &__text {
     display: block;
     color: #6d5580;
+  }
+
+  &__check {
+    font-size: 20px;
+    color: #3d9a4f;
   }
 }

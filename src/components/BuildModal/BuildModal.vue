@@ -2,60 +2,47 @@
 import { computed, ref } from 'vue';
 import GameModal from '@/components/GameModal/GameModal.vue';
 import { useGame } from '@/composables/useGame';
-import { CLASS_IDS, ROOM_CLASSES, SITES } from '@/data/rooms';
-import { buildStatus, freePlots, type BuildStatus } from '@/functions/build';
+import { CLASS_IDS, ROOM_CLASSES } from '@/data/rooms';
+import { buildStatus, freePlots } from '@/functions/build';
 
 const { state, build, closeModal } = useGame();
 
 const plots = computed(() => freePlots(state));
 const plot = ref(plots.value[0]);
-
-const NOTE: Record<BuildStatus, string> = {
-  ok: '',
-  poor: 'Не хватает монет',
-  full: 'Свободных участков нет',
-};
-const cards = computed(() =>
-  CLASS_IDS.map((id) => {
-    const status = buildStatus(state, id);
-    return { id, ...ROOM_CLASSES[id], status, note: NOTE[status] };
-  }),
-);
+const cards = computed(() => CLASS_IDS.map((id) => ({ id, ...ROOM_CLASSES[id], status: buildStatus(state, id) })));
 </script>
 
 <template>
   <GameModal title="Стройка">
-    <p>В кошельке: {{ state.coins }} монет</p>
-    <div v-if="plots.length" class="build-modal__plots">
-      Участок:
-      <label v-for="p in plots" :key="p" class="build-modal__plot">
-        <input v-model="plot" type="radio" :value="p" /> {{ SITES[p].title }}
-      </label>
-    </div>
-    <div
-      v-for="card in cards"
-      :key="card.id"
-      class="build-modal__card"
-      :class="{ 'build-modal__card--off': card.status !== 'ok' }"
-    >
-      <div class="build-modal__info">
-        <b>{{ card.title }}</b>
-        <small class="build-modal__text">
-          {{ card.text }} Мест: {{ card.cap }} · {{ card.rate }} монет за ночь · окупается за
-          {{ Math.ceil(card.price / card.rate) }} ноч.<template v-if="card.note"> — {{ card.note }}</template>
-        </small>
-      </div>
+    <div v-if="plots.length > 1" class="build-modal__plots">
       <button
-        class="ui-button ui-button--paper ui-button--primary"
-        :data-build="card.id"
-        :disabled="card.status !== 'ok'"
-        @click="build(plot, card.id)"
+        v-for="(p, i) in plots"
+        :key="p"
+        class="build-modal__plot"
+        :class="{ 'build-modal__plot--on': p === plot }"
+        @click="plot = p"
       >
-        {{ card.price }} монет
+        Участок {{ i + 1 }}
       </button>
     </div>
+    <p v-if="!plots.length" class="build-modal__full">Все участки застроены</p>
+    <div class="build-modal__cards">
+      <div v-for="card in cards" :key="card.id" class="build-modal__card">
+        <b>{{ card.title }}</b>
+        <span class="build-modal__beds">{{ '🛏️'.repeat(card.cap) }}</span>
+        <span class="build-modal__rate">+{{ card.rate }} <i class="ui-coin" /> за ночь</span>
+        <button
+          class="ui-button ui-button--primary"
+          :data-build="card.id"
+          :disabled="card.status !== 'ok'"
+          @click="build(plot, card.id)"
+        >
+          <i class="ui-coin" /> {{ card.price }}
+        </button>
+      </div>
+    </div>
     <template #actions>
-      <button class="ui-button ui-button--paper" data-ok @click="closeModal">Закрыть</button>
+      <button class="ui-button" data-ok @click="closeModal">Закрыть</button>
     </template>
   </GameModal>
 </template>

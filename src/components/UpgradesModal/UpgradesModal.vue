@@ -4,59 +4,50 @@ import GameModal from '@/components/GameModal/GameModal.vue';
 import { useGame } from '@/composables/useGame';
 import { UPGRADES } from '@/data/upgrades';
 import { upgradeStatus } from '@/functions/upgrades';
-import type { UpgradeStatus } from '@/models/ui';
 
 const { state, buy, closeModal } = useGame();
 
-const NOTE: Record<UpgradeStatus, string> = {
-  ok: '',
-  hidden: '',
-  done: 'Куплено',
-  need: '',
-  busy: 'В этом номере сейчас гости — после их выезда',
-  poor: 'Не хватает монет',
-};
 const items = computed(() =>
-  UPGRADES.filter((u) => upgradeStatus(state, u) !== 'hidden').map((u) => {
-    const status = upgradeStatus(state, u);
-    const need = UPGRADES.find((x) => x.id === u.need);
-    return {
+  UPGRADES.map((u) => ({ u, status: upgradeStatus(state, u) }))
+    // закрытые предыдущим улучшением не показываем: список остаётся коротким
+    .filter(({ status }) => status !== 'hidden' && status !== 'need')
+    .map(({ u, status }) => ({
       id: u.id,
       status,
+      icon: u.icon,
       title: u.title(state),
-      text: u.text(state),
+      text: status === 'busy' ? '💤 В номере гости' : u.text(state),
       price: u.price(state),
-      note: status === 'need' && need ? `Сначала: ${need.title(state).toLowerCase()}` : NOTE[status],
-    };
-  }),
+    })),
 );
 </script>
 
 <template>
   <GameModal title="Улучшения">
-    <p>В кошельке: {{ state.coins }} монет</p>
     <div
       v-for="item in items"
       :key="item.id"
       class="upgrades-modal__item"
-      :class="{ 'upgrades-modal__item--off': item.status !== 'ok' }"
+      :class="{ 'upgrades-modal__item--done': item.status === 'done' }"
     >
+      <span class="upgrades-modal__icon">{{ item.icon }}</span>
       <div class="upgrades-modal__info">
         <b>{{ item.title }}</b>
-        <small class="upgrades-modal__text">{{ item.text }}<template v-if="item.note"> — {{ item.note }}</template></small>
+        <small class="upgrades-modal__text">{{ item.text }}</small>
       </div>
+      <span v-if="item.status === 'done'" class="upgrades-modal__check">✔</span>
       <button
-        v-if="item.status !== 'done'"
-        class="ui-button ui-button--paper ui-button--primary"
+        v-else
+        class="ui-button ui-button--primary"
         :data-up="item.id"
         :disabled="item.status !== 'ok'"
         @click="buy(item.id)"
       >
-        {{ item.price }} монет
+        <i class="ui-coin" /> {{ item.price }}
       </button>
     </div>
     <template #actions>
-      <button class="ui-button ui-button--paper" data-ok @click="closeModal">Закрыть</button>
+      <button class="ui-button" data-ok @click="closeModal">Закрыть</button>
     </template>
   </GameModal>
 </template>

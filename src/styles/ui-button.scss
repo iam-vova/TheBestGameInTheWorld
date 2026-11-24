@@ -1,16 +1,21 @@
 @use 'vars' as *;
 
+// кнопка-«клавиша»: жёсткая тень снизу, при нажатии проседает
 .ui-button {
   font: inherit;
+  font-weight: 600;
   cursor: pointer;
   border-radius: 6px;
-  border: 1px solid $border-light;
-  background: #4b3a5e;
-  color: $text;
-  padding: 6px 12px;
+  border: 2px solid $ink;
+  background: #f1d3df;
+  color: $ink;
+  padding: 5px 12px;
+  box-shadow: 0 3px 0 $ink;
+  white-space: nowrap;
 
-  &:hover {
-    background: #5e4a76;
+  &:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: none;
   }
 
   &:disabled {
@@ -19,28 +24,6 @@
   }
 
   &--primary {
-    background: $accent;
-    border-color: $accent-light;
-    color: #2a1633;
-    font-weight: 600;
-
-    &:hover {
-      background: #e88db0;
-    }
-  }
-
-  // кнопка на светлой «бумаге» модального окна
-  &--paper {
-    background: #f1d3df;
-    color: $ink;
-    border-color: $purple;
-
-    &:hover {
-      background: #f6dde7;
-    }
-  }
-
-  &--paper#{&}--primary {
-    background: $accent;
+    background: $gold;
   }
 }

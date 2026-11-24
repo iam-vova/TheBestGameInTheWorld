@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import GameHeader from '@/components/GameHeader/GameHeader.vue';
-import GoalBar from '@/components/GoalBar/GoalBar.vue';
 import GameStage from '@/components/GameStage/GameStage.vue';
-import RoomCards from '@/components/RoomCards/RoomCards.vue';
-import LedgerPanel from '@/components/LedgerPanel/LedgerPanel.vue';
+import LedgerModal from '@/components/LedgerModal/LedgerModal.vue';
 import AdModal from '@/components/AdModal/AdModal.vue';
 import BillModal from '@/components/BillModal/BillModal.vue';
 import UpgradesModal from '@/components/UpgradesModal/UpgradesModal.vue';
@@ -16,19 +13,13 @@ const { modal, closeModal, newGame } = useGame();
 
 <template>
   <div class="game-app">
-    <GameHeader />
-    <GoalBar />
     <GameStage />
-    <RoomCards />
-    <LedgerPanel />
-    <p class="game-app__hint">
-      Клик по земле — идти. Клик по объекту с меткой — действие. Прогресс сохраняется в этом браузере.
-    </p>
 
     <AdModal v-if="modal?.type === 'ad'" />
     <BillModal v-else-if="modal?.type === 'bill'" :bill="modal.bill" />
     <UpgradesModal v-else-if="modal?.type === 'upgrades'" />
     <BuildModal v-else-if="modal?.type === 'build'" />
+    <LedgerModal v-else-if="modal?.type === 'ledger'" />
     <MessageModal
       v-else-if="modal?.type === 'message'"
       :title="modal.title"
@@ -39,9 +30,9 @@ const { modal, closeModal, newGame } = useGame();
     <MessageModal
       v-else-if="modal?.type === 'confirmNew'"
       title="Начать заново?"
-      :lines="['Текущий прогресс будет стёрт.']"
-      ok="Новая игра"
-      cancel="Отмена"
+      :lines="['Прогресс сотрётся.']"
+      ok="Заново"
+      cancel="Нет"
       @ok="newGame"
       @cancel="closeModal"
     />

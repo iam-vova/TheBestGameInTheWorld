@@ -6,6 +6,7 @@ export type UpgradeId = 'bed' | 'annex' | 'helper' | 'kitchen' | `minibar_${Room
 
 export interface Upgrade {
   id: UpgradeId;
+  icon: string;
   title: (s: GameState) => string;
   /** что изменится после покупки — показывается до неё */
   text: (s: GameState) => string;
@@ -25,11 +26,12 @@ function minibar(room: RoomId): Upgrade {
   const level = (s: GameState) => s.rooms[room].minibar;
   return {
     id: `minibar_${room}`,
-    title: (s) => `Мини-бар · ${where} (уровень ${level(s)} из ${MAX_BAR})`,
+    icon: '🍾',
+    title: (s) => `Мини-бар · ${where} ${'●'.repeat(level(s))}${'○'.repeat(MAX_BAR - level(s))}`,
     text: (s) =>
       level(s) < MAX_BAR
-        ? `Шанс покупки за занятую ночь: ${pct(chance[level(s)])} → ${pct(chance[level(s) + 1])}. Покупка добавляет к счёту ${sale} монет.`
-        : `Шанс покупки за занятую ночь ${pct(chance[MAX_BAR])}, покупка добавляет ${sale} монет.`,
+        ? `+${sale} к счёту · шанс ${pct(chance[level(s)])} → ${pct(chance[level(s) + 1])}`
+        : `+${sale} к счёту · шанс ${pct(chance[MAX_BAR])}`,
     price: (s) => price[level(s)] ?? 0,
     need: 'annex',
     room,
@@ -40,31 +42,35 @@ function minibar(room: RoomId): Upgrade {
 export const UPGRADES: Upgrade[] = [
   {
     id: 'bed',
-    title: () => 'Второе спальное место',
-    text: () => 'Диван → две кровати. Номер в доме принимает пару: 30 → 50 за ночь.',
+    icon: '🛏️',
+    title: () => 'Вторая кровать',
+    text: () => 'Номер на двоих: 30 → 50 за ночь',
     price: () => 30,
     done: (s) => s.rooms.home.cap === 2,
   },
   {
     id: 'annex',
-    title: () => 'Одноместная пристройка',
-    text: () => 'Второй номер с отдельным входом, +30 за ночь. Отель на трёх человек.',
+    icon: '🏠',
+    title: () => 'Пристройка',
+    text: () => 'Второй номер: +30 за ночь',
     price: () => 50,
     need: 'bed',
     done: (s) => s.rooms.annex.built,
   },
   {
     id: 'helper',
+    icon: '🧹',
     title: () => 'Помощник',
-    text: () => `Сам стелет постели, убирает номера после выезда и готовит на кухне. Ключи и оплата остаются за тобой. Смена стоит ${BALANCE.helperWage} монет за ночь.`,
+    text: () => `Стелет, убирает, готовит · −${BALANCE.helperWage} за ночь`,
     price: () => 150,
     need: 'annex',
     done: (s) => s.helper,
   },
   {
     id: 'kitchen',
-    title: () => 'Летняя кухня и ужины',
-    text: () => `Приготовь ужин до заселения и передай вместе с ключом: +${BALANCE.dinnerFee} монет с гостя.`,
+    icon: '🍲',
+    title: () => 'Летняя кухня',
+    text: () => `Ужин: +${BALANCE.dinnerFee} с гостя`,
     price: () => 300,
     need: 'annex',
     done: (s) => s.kitchen,

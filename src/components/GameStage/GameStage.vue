@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, toRaw } from 'vue';
+import GameHud from '@/components/GameHud/GameHud.vue';
 import { useGame } from '@/composables/useGame';
 import { VIEW } from '@/data/scenes';
 import { drawFrame } from '@/render/renderer';
@@ -69,6 +70,7 @@ function onPointerDown(ev: PointerEvent): void {
     >
       {{ label.text }}
     </div>
+    <GameHud />
     <div v-if="toast" class="game-stage__toast">
       <span class="game-stage__toast-text">{{ toast }}</span>
     </div>
