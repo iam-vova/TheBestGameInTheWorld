@@ -1,0 +1,223 @@
+[
+ {
+  "name": "house",
+  "file": "buildings.js",
+  "scale": "out",
+  "params": {
+   "model": "house"
+  }
+ },
+ {
+  "name": "annex",
+  "file": "buildings.js",
+  "scale": "out",
+  "params": {
+   "model": "cabin",
+   "cls": "standard"
+  }
+ },
+ {
+  "name": "cabin_economy",
+  "file": "buildings.js",
+  "scale": "out",
+  "params": {
+   "model": "cabin",
+   "cls": "economy"
+  }
+ },
+ {
+  "name": "cabin_standard",
+  "file": "buildings.js",
+  "scale": "out",
+  "params": {
+   "model": "cabin",
+   "cls": "standard"
+  }
+ },
+ {
+  "name": "cabin_premium",
+  "file": "buildings.js",
+  "scale": "out",
+  "params": {
+   "model": "cabin",
+   "cls": "premium"
+  }
+ },
+ {
+  "name": "board",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "board"
+  }
+ },
+ {
+  "name": "board_posted",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "board",
+   "posted": true
+  }
+ },
+ {
+  "name": "sign",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "sign"
+  }
+ },
+ {
+  "name": "fountain",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "fountain"
+  }
+ },
+ {
+  "name": "bench",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "bench"
+  }
+ },
+ {
+  "name": "kitchen",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "kitchen"
+  }
+ },
+ {
+  "name": "shell_home",
+  "file": "rooms.js",
+  "scale": "room",
+  "params": {
+   "model": "home"
+  }
+ },
+ {
+  "name": "shell_annex",
+  "file": "rooms.js",
+  "scale": "room",
+  "params": {
+   "model": "cabin"
+  }
+ },
+ {
+  "name": "bed_bare",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "bed",
+   "state": "bare"
+  }
+ },
+ {
+  "name": "bed_made",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "bed",
+   "state": "made"
+  }
+ },
+ {
+  "name": "bed_used",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "bed",
+   "state": "used"
+  }
+ },
+ {
+  "name": "bed_sleep",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "bed",
+   "state": "sleep"
+  }
+ },
+ {
+  "name": "sofa_bare",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "sofa",
+   "state": "bare"
+  }
+ },
+ {
+  "name": "sofa_made",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "sofa",
+   "state": "made"
+  }
+ },
+ {
+  "name": "sofa_used",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "sofa",
+   "state": "used"
+  }
+ },
+ {
+  "name": "sofa_sleep",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "sofa",
+   "state": "sleep"
+  }
+ },
+ {
+  "name": "table",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "table"
+  }
+ },
+ {
+  "name": "nightstand",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "nightstand"
+  }
+ },
+ {
+  "name": "minibar",
+  "file": "furniture.js",
+  "scale": "room",
+  "params": {
+   "model": "minibar"
+  }
+ },
+ {
+  "name": "coins",
+  "file": "furniture.js",
+  "scale": "detail",
+  "params": {
+   "model": "coins"
+  }
+ },
+ {
+  "name": "mess",
+  "file": "furniture.js",
+  "scale": "detail",
+  "params": {
+   "model": "mess"
+  }
+ }
+]

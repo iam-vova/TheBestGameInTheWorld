@@ -35,13 +35,20 @@ function buildingSprite(s: GameState, r: RoomId): SceneSprite {
   return cls ? `cabin_${cls}` : 'annex';
 }
 
+/** окна на спрайтах построек: отрезки вдоль передней и правой стены и высота в долях стены — как в art/models/buildings.js */
+const WINDOWS = {
+  house: { front: [[3.75, 4.55]], side: [[1.2, 2.4]], y: [0.34, 0.7] },
+  cabin: { front: [[0.2, 0.7], [1.8, 2.3]], side: [[0.75, 1.5]], y: [0.36, 0.72] },
+  economy: { front: [[1.85, 2.3]], side: [[0.75, 1.5]], y: [0.36, 0.72] },
+};
+
 /** свет в окнах, когда в номерах гости: полупрозрачные прямоугольники поверх окон спрайта */
-function windowGlow(b: RoomSite): void {
-  const z0 = b.h * 0.34;
-  const z1 = b.h * 0.7;
-  if (b.interior === 'home') wallX(b.x + b.w - 1.25, b.x + b.w - 0.45, b.y + b.d, z0, z1, GLOW);
-  else wallX(b.x + 0.45, b.x + 1.25, b.y + b.d, z0, z1, GLOW);
-  wallY(b.x + b.w, b.y + b.d * 0.3, b.y + b.d * 0.6, z0, z1, GLOW);
+function windowGlow(b: RoomSite, kind: keyof typeof WINDOWS): void {
+  const win = WINDOWS[kind];
+  const z0 = b.h * win.y[0];
+  const z1 = b.h * win.y[1];
+  for (const [x0, x1] of win.front) wallX(b.x + x0, b.x + x1, b.y + b.d, z0, z1, GLOW);
+  for (const [y0, y1] of win.side) wallY(b.x + b.w, b.y + y0, b.y + y1, z0, z1, GLOW);
 }
 
 /** пунктир вокруг свободного участка и табличка */
@@ -73,7 +80,7 @@ export function drawOutside(s: GameState, world: World): void {
     const site = SITES[r];
     if (s.rooms[r].built) {
       drawSprite(buildingSprite(s, r), site.x, site.y);
-      if (lit) windowGlow(site);
+      if (lit) windowGlow(site, r === 'home' ? 'house' : s.rooms[r].cls === 'economy' ? 'economy' : 'cabin');
     } else if (plotVisible(s, r)) emptyPlot(site);
   }
   const list: Drawable[] = DECOR.map(([name, x, y]) => ({ depth: x + y, draw: () => drawSprite(name, x, y) }));
