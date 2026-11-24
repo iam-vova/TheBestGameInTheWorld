@@ -33,15 +33,20 @@ describe('тестовый баланс первых двух ночей', () =>
     expect(s.coins).toBe(80);
   });
 
-  it('пристройку нельзя купить раньше второго места и пока гости в номерах', () => {
+  it('пристройку нельзя купить раньше второго места; при гостях в доме её купить можно, а вторую кровать — нет', () => {
     const s = start();
     s.coins = 100;
     const annex = UPGRADES.find((u) => u.id === 'annex')!;
     expect(upgradeStatus(s, annex)).toBe('need');
+    s.bookings[0].stage = 'sleep';
+    expect(upgradeStatus(s, UPGRADES.find((u) => u.id === 'bed')!)).toBe('busy');
+    s.bookings[0].stage = 'door';
     buyUpgrade(s, 'bed');
     s.bookings[0].stage = 'sleep';
-    expect(upgradeStatus(s, annex)).toBe('busy');
-    expect(buyUpgrade(s, 'annex')).toBeNull();
+    expect(upgradeStatus(s, annex)).toBe('ok');
+    // гости в доме остаются на месте, в пристройку сегодня же едет новый гость
+    expect(buyUpgrade(s, 'annex')).toEqual({ booked: 'annex' });
+    expect(s.bookings.map((b) => [b.room, b.stage])).toEqual([['home', 'sleep'], ['annex', 'coming']]);
   });
 });
 

@@ -1,22 +1,23 @@
 import { UPGRADES, type Upgrade, type UpgradeId } from '@/data/upgrades';
-import type { GameState } from '@/models/game';
+import type { GameState, RoomId } from '@/models/game';
 import type { UpgradeStatus } from '@/models/ui';
-import { hasGuests, makeBookings } from './bookings';
+import { bookRoom, isLocked } from './bookings';
 
 export function upgradeStatus(s: GameState, u: Upgrade): UpgradeStatus {
   if (u.room && !s.rooms[u.room].built) return 'hidden';
   if (u.done(s)) return 'done';
   const need = u.need && UPGRADES.find((x) => x.id === u.need);
   if (need && !need.done(s)) return 'need';
-  // стройка возможна, только пока в номерах никого нет
-  if (hasGuests(s)) return 'busy';
+  // занятый номер не переделывают: вторая кровать и мини-бар ждут выезда гостей. Остальное можно купить когда угодно
+  const room = u.id === 'bed' ? 'home' : u.room;
+  if (room && isLocked(s, room)) return 'busy';
   return s.coins >= u.price(s) ? 'ok' : 'poor';
 }
 
 export const hasAffordableUpgrade = (s: GameState): boolean => UPGRADES.some((u) => upgradeStatus(s, u) === 'ok');
 
-/** Покупает улучшение. Возвращает true, если бронирования пересозданы (объявление обновилось само). */
-export function buyUpgrade(s: GameState, id: UpgradeId): { rebooked: boolean } | null {
+/** Покупает улучшение. booked — номер, в который объявление сразу позвало новых гостей. */
+export function buyUpgrade(s: GameState, id: UpgradeId): { booked: RoomId | null } | null {
   const u = UPGRADES.find((x) => x.id === id);
   if (!u || upgradeStatus(s, u) !== 'ok') return null;
   const price = u.price(s);
@@ -37,9 +38,8 @@ export function buyUpgrade(s: GameState, id: UpgradeId): { rebooked: boolean } |
     else if (id === 'kitchen') s.kitchen = true;
     else if (u.room) s.rooms[u.room].minibar++;
     s.ledger.push({ t: title, d: -price, b: s.coins });
-    return { rebooked: false };
+    return { booked: null };
   }
-  const rebooked = s.phase === 'arrive';
-  if (rebooked) makeBookings(s);
-  return { rebooked };
+  const room: RoomId = id === 'bed' ? 'home' : 'annex';
+  return { booked: bookRoom(s, room) ? room : null };
 }

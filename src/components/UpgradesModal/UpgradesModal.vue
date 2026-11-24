@@ -13,7 +13,7 @@ const NOTE: Record<UpgradeStatus, string> = {
   hidden: '',
   done: 'Куплено',
   need: '',
-  busy: 'Пока гости в номерах — нельзя',
+  busy: 'В этом номере сейчас гости — после их выезда',
   poor: 'Не хватает монет',
 };
 const items = computed(() =>

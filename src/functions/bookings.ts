@@ -20,6 +20,19 @@ export const hasGuests = (s: GameState): boolean => s.bookings.some((b) => b.sta
 
 export const findBooking = (s: GameState, r: RoomId): Booking | undefined => s.bookings.find((b) => b.room === r);
 
+/**
+ * Новый или изменившийся номер сразу попадает в сегодняшние брони, если вечер ещё идёт: остальные гости не трогаются.
+ * Возвращает true, если бронь создана.
+ */
+export function bookRoom(s: GameState, r: RoomId): boolean {
+  if (s.phase !== 'arrive' || isLocked(s, r)) return false;
+  const booking: Booking = { id: r, room: r, n: s.rooms[r].cap, stage: 'coming', paid: false };
+  const i = s.bookings.findIndex((b) => b.room === r);
+  if (i >= 0) s.bookings[i] = booking;
+  else s.bookings.push(booking);
+  return true;
+}
+
 /** Объявление работает само: на каждый вечер по одному бронированию на построенный номер. */
 export function makeBookings(s: GameState): void {
   s.bookings = builtRooms(s).map((r) => ({ id: r, room: r, n: s.rooms[r].cap, stage: 'coming', paid: false }));

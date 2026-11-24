@@ -155,3 +155,14 @@ describe('терпение гостей', () => {
     expect(waitAtDoor(s, s.bookings[0], 100)).toBe(false);
   });
 });
+
+describe('покупки при гостях', () => {
+  it('помощника, кухню и мини-бар свободного номера можно купить, пока в другом номере гости', () => {
+    const s = hotel();
+    s.bookings[0].stage = 'sleep'; // гости в доме
+    expect(buyUpgrade(s, 'helper')).not.toBeNull();
+    expect(buyUpgrade(s, 'kitchen')).not.toBeNull();
+    expect(buyUpgrade(s, 'minibar_annex')).not.toBeNull();
+    expect(buyUpgrade(s, 'minibar_home')).toBeNull(); // в доме гости — мини-бар подождёт выезда
+  });
+});

@@ -13,7 +13,6 @@ const plot = ref(plots.value[0]);
 const NOTE: Record<BuildStatus, string> = {
   ok: '',
   poor: 'Не хватает монет',
-  busy: 'Пока гости в номерах — строить нельзя',
   full: 'Свободных участков нет',
 };
 const cards = computed(() =>

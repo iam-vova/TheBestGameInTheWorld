@@ -173,12 +173,12 @@ function closeBill(): void {
 function buy(id: UpgradeId): void {
   const result = buyUpgrade(state, id);
   if (!result) return;
-  if (result.rebooked) world.guests = placeGuests(state);
+  if (result.booked) arrive(result.booked);
   commit();
   if (id === 'helper') world.helper = createHelper();
   if (id === 'bed') {
     modal.value = null;
-    showToast('Номер стал двухместным, 50 за ночь. Объявление обновилось само — теперь едет пара. Застели кровати.');
+    showToast(`Номер стал двухместным, 50 за ночь. ${result.booked ? 'Объявление обновилось само — теперь едет пара. Застели кровати.' : 'Пара приедет со следующего вечера.'}`);
   } else if (id !== 'annex') {
     // меню остаётся открытым: видно, что куплено и на что ещё хватает
     if (id === 'helper') showToast('Помощник нанят: постели, уборка и кухня теперь на нём.');
@@ -188,21 +188,26 @@ function buy(id: UpgradeId): void {
       title: 'Первый прототип пройден',
       lines: [
         'Две ночи позади, на выручку куплена пристройка. Теперь у тебя два номера на трёх человек.',
-        'Объявление обновилось само: едут пара и одиночный гость. У каждого номера свой ключ: застели оба, а утром убирай тот, что освободился первым.',
+        'Объявление обновилось само: в пристройку будет приезжать одиночный гость. У каждого номера свой ключ: застели оба, а утром убирай тот, что освободился первым.',
       ],
       ok: 'Продолжить',
     };
   }
 }
 
+/** Новые гости одного номера выходят на дорогу; остальные остаются там, где были. */
+function arrive(room: RoomId): void {
+  world.guests = world.guests.filter((g) => g.booking !== room).concat(placeGuests(state).filter((g) => g.booking === room));
+}
+
 /** Стройка домика на свободном участке. */
 function build(plot: RoomId, cls: RoomClass): void {
   const result = buildCabin(state, plot, cls);
   if (!result) return;
-  if (result.rebooked) world.guests = placeGuests(state);
+  if (result.booked) arrive(plot);
   commit();
   modal.value = null;
-  showToast(`Построен ${roomName(plot)}. Объявление обновилось само — гости приедут уже сегодня. Застели постель.`);
+  showToast(`Построен ${roomName(plot)}. ${result.booked ? 'Объявление обновилось само — гости приедут уже сегодня. Застели постель.' : 'Гости приедут в него со следующего вечера.'}`);
 }
 
 function toMorning(): void {

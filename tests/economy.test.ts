@@ -34,7 +34,7 @@ describe('стройка домиков', () => {
   it('домик выбранного класса встаёт на участок и принимает гостей в тот же вечер', () => {
     const s = hotel(1000);
     expect(freePlots(s)).toEqual(['cabin1', 'cabin2']);
-    expect(buildCabin(s, 'cabin1', 'standard')).toEqual({ rebooked: true });
+    expect(buildCabin(s, 'cabin1', 'standard')).toEqual({ booked: true });
     expect(s.coins).toBe(1000 - 300);
     expect(s.rooms.cabin1).toMatchObject({ built: true, cls: 'standard', cap: 2, rate: 55 });
     expect(s.bookings.map((b) => [b.room, b.n])).toEqual([['home', 2], ['annex', 1], ['cabin1', 2]]);
@@ -45,13 +45,18 @@ describe('стройка домиков', () => {
     expect(s.coins).toBe(1000 - 300 - 500 + 50 + 30 + 55 + 90);
   });
 
-  it('до пристройки и при заселённых номерах строить нельзя', () => {
+  it('до пристройки строить нельзя; при заселённых номерах можно, и их гости остаются на месте', () => {
     const early = createState();
     early.coins = 500;
     expect(buildCabin(early, 'cabin1', 'economy')).toBeNull();
     const s = hotel(500);
     s.bookings[0].stage = 'sleep';
-    expect(buildCabin(s, 'cabin1', 'economy')).toBeNull();
+    expect(buildCabin(s, 'cabin1', 'economy')).toEqual({ booked: true });
+    expect(s.bookings.map((b) => [b.room, b.stage])).toEqual([['home', 'sleep'], ['annex', 'coming'], ['cabin1', 'coming']]);
+    // ночью и утром домик строится, но гости приедут только со следующего вечера
+    s.phase = 'morning';
+    expect(buildCabin(s, 'cabin2', 'economy')).toEqual({ booked: false });
+    expect(s.bookings).toHaveLength(3);
   });
 });
 
