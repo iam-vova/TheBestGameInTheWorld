@@ -1,6 +1,7 @@
 // Единственный экземпляр игры: связывает чистую логику (functions), мир с персонажами и интерфейс.
 import { reactive, ref, shallowRef, toRaw } from 'vue';
 import { BALANCE, DEFAULT_AD } from '@/data/balance';
+import { getObstacles } from '@/data/obstacles';
 import { DOOR_OUTSIDE, SPAWN, VIEW } from '@/data/scenes';
 import type { UpgradeId } from '@/data/upgrades';
 import { findBooking, makeBookings, roomName } from '@/functions/bookings';
@@ -235,6 +236,8 @@ function syncLabels(marks: Hotspot[]): void {
   if (JSON.stringify(next) !== JSON.stringify(labels.value)) labels.value = next;
 }
 
+const obstacles = (scene: SceneId) => getObstacles(state, scene);
+
 /** Шаг симуляции. Возвращает отмеченные цели для отрисовки стрелок. */
 function update(dt: number): Hotspot[] {
   const p = world.player;
@@ -246,7 +249,7 @@ function update(dt: number): Hotspot[] {
       done();
     }
   } else {
-    stepActor(p, dt);
+    stepActor(p, dt, obstacles);
     if (!p.path.length && p.then) {
       const then = p.then;
       p.then = null;
@@ -254,11 +257,11 @@ function update(dt: number): Hotspot[] {
     }
   }
   if (world.helper) {
-    stepActor(world.helper, dt);
+    stepActor(world.helper, dt, obstacles);
     const done = stepHelper(world.helper, getTasks(state), dt);
     if (done) finishWork(done);
   }
-  for (const g of world.guests) stepActor(g, dt);
+  for (const g of world.guests) stepActor(g, dt, obstacles);
   world.guests = world.guests.filter((g) => !g.gone);
 
   for (const b of state.bookings) {

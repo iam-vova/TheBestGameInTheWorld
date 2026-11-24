@@ -28,14 +28,32 @@ function drawPerson(a: Actor, player: Player | null): void {
   }
 }
 
+/**
+ * Глубина персонажа среди предметов. Обычно это x + y, но у длинного предмета (кровать, стол) одной цифры мало:
+ * персонаж перед ним, если стоит правее или ниже его прямоугольника, и за ним, если левее или выше.
+ */
+function depthAmong(objects: Drawable[], a: Actor): number {
+  let depth = a.x + a.y;
+  for (const o of objects) {
+    if (!o.rect) continue;
+    const [x0, y0, x1, y1] = o.rect;
+    const front = a.x >= x1 || a.y >= y1;
+    const behind = a.x <= x0 || a.y <= y0;
+    if (front && !behind && depth <= o.depth) depth = o.depth + 0.01;
+    else if (behind && !front && depth >= o.depth) depth = o.depth - 0.01;
+  }
+  return depth;
+}
+
 /** Добавляет к предметам сцены хозяина и гостей и рисует всё по глубине. */
 export function drawWithPeople(list: Drawable[], world: World): void {
   const scene = world.player.scene;
+  const objects = [...list];
   for (const guest of world.guests) {
-    if (guest.scene === scene && !guest.lying) list.push({ depth: guest.x + guest.y, draw: () => drawPerson(guest, null) });
+    if (guest.scene === scene && !guest.lying) list.push({ depth: depthAmong(objects, guest), draw: () => drawPerson(guest, null) });
   }
   const helper = world.helper;
-  if (helper && helper.scene === scene) list.push({ depth: helper.x + helper.y, draw: () => drawPerson(helper, null) });
-  list.push({ depth: world.player.x + world.player.y, draw: () => drawPerson(world.player, world.player) });
+  if (helper && helper.scene === scene) list.push({ depth: depthAmong(objects, helper), draw: () => drawPerson(helper, null) });
+  list.push({ depth: depthAmong(objects, world.player), draw: () => drawPerson(world.player, world.player) });
   drawSorted(list);
 }

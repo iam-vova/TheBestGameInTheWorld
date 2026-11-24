@@ -34,6 +34,8 @@ export function wallY(x: number, y0: number, y1: number, z0: number, z1: number,
 /** рисует список по глубине: дальние раньше */
 export interface Drawable {
   depth: number;
+  /** место на земле [x0, y0, x1, y1]: по нему решается, перед предметом персонаж или за ним */
+  rect?: readonly number[];
   draw: () => void;
 }
 export function drawSorted(list: Drawable[]): void {

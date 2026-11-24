@@ -10,7 +10,8 @@ const INSIDE: Record<'home' | 'cabin', Record<Exclude<RoomSpot, 'door'>, Omit<Ho
     mat: { x: 3.5, y: 5.6, z: 10, ax: 3.5, ay: 5.55 },
   },
   cabin: {
-    bed: { x: 0.8, y: 1.3, z: 36, ax: 1.7, ay: 1.6 },
+    // подход — у изножья: в двухместном домике место рядом с первой кроватью занято второй
+    bed: { x: 0.8, y: 1.3, z: 36, ax: 1.25, ay: 2.5 },
     pay: { x: 3.1, y: 0.5, z: 40, ax: 3.1, ay: 1.2 },
     mat: { x: 2, y: 3.6, z: 10, ax: 2, ay: 3.55 },
   },

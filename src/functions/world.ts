@@ -1,9 +1,11 @@
 import { HOTSPOTS } from '@/data/hotspots';
+import { walkArea, type Rect } from '@/data/obstacles';
 import { ROOM_IDS, waitSpot } from '@/data/rooms';
 import { DOOR_OUTSIDE, GROUND, SCENES, SPAWN } from '@/data/scenes';
 import { DIR_ROW, GUEST_SPRITES } from '@/data/sprites';
 import type { Booking, GameState, SceneId } from '@/models/game';
 import type { Actor, Guest, Player } from '@/models/world';
+import { findPath } from './path';
 
 const ROAD_Y = 9.7;
 
@@ -76,8 +78,8 @@ export function sendAway(guests: Guest[], b: Booking, day: number): Guest[] {
   return rest;
 }
 
-/** Один шаг движения по пути. */
-export function stepActor(a: Actor, dt: number): void {
+/** Один шаг движения по пути. Отрезок до следующей точки при первом шаге прокладывается в обход препятствий. */
+export function stepActor(a: Actor, dt: number, obstacles: (scene: SceneId) => Rect[]): void {
   const p = a.path[0];
   if (!p) {
     a.walk = 0;
@@ -99,6 +101,11 @@ export function stepActor(a: Actor, dt: number): void {
   if ('gone' in p) {
     (a as Guest).gone = true;
     a.path = [];
+    return;
+  }
+  if (!p.routed) {
+    const route = findPath(obstacles(a.scene), walkArea(a.scene), [a.x, a.y], [p.x, p.y]);
+    a.path.splice(0, 1, ...route.map(([x, y]) => ({ x, y, routed: true })));
     return;
   }
   const step = SCENES[a.scene].speed * dt;

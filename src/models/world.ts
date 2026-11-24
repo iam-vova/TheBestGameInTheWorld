@@ -3,7 +3,8 @@ import type { RoomId, SceneId } from './game';
 import type { TaskKind } from './ui';
 
 export type PathStep =
-  | { x: number; y: number }
+  /** routed — путь до точки уже проложен в обход препятствий */
+  | { x: number; y: number; routed?: boolean }
   | { warp: SceneId; x: number; y: number }
   | { lie: true }
   | { gone: true };

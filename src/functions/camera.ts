@@ -6,7 +6,9 @@ import { clamp, project } from './iso';
 /** Конфигурация сцены с учётом камеры: во дворе карта шире экрана и едет за хозяином. */
 export function viewOf(scene: SceneId, cam: World['cam']): SceneConfig {
   const sc = SCENES[scene];
-  return scene === 'out' ? { ...sc, ox: sc.ox - cam.x, oy: sc.oy - cam.y } : sc;
+  // камера встаёт на целый пиксель канвы (полпикселя сцены): иначе спрайты округляются вразнобой и дрожат
+  const snap = (v: number): number => Math.round(v * VIEW.scale) / VIEW.scale;
+  return scene === 'out' ? { ...sc, ox: sc.ox - snap(cam.x), oy: sc.oy - snap(cam.y) } : sc;
 }
 
 const OUT = SCENES.out;

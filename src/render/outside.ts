@@ -1,4 +1,5 @@
 import { DECOR, TREES } from '@/data/decor';
+import { YARD } from '@/data/obstacles';
 import { FRONT_Y, ROOM_IDS, SITES, type RoomSite } from '@/data/rooms';
 import type { SceneSprite } from '@/data/sceneSprites';
 import { GROUND } from '@/data/scenes';
@@ -83,8 +84,12 @@ export function drawOutside(s: GameState, world: World): void {
       if (lit) windowGlow(site, r === 'home' ? 'house' : s.rooms[r].cls === 'economy' ? 'economy' : 'cabin');
     } else if (plotVisible(s, r)) emptyPlot(site);
   }
-  const list: Drawable[] = DECOR.map(([name, x, y]) => ({ depth: x + y, draw: () => drawSprite(name, x, y) }));
-  list.push({ depth: 16.05, draw: () => drawSprite(s.posted ? 'board_posted' : 'board', 3, 8) });
-  if (s.kitchen) list.push({ depth: 21.9, draw: () => drawSprite('kitchen', 8.5, 11.3) });
+  const list: Drawable[] = DECOR.map(([name, x, y]) => ({
+    depth: x + y,
+    rect: name === 'bench' ? YARD.bench : undefined,
+    draw: () => drawSprite(name, x, y),
+  }));
+  list.push({ depth: 11.05, rect: YARD.board, draw: () => drawSprite(s.posted ? 'board_posted' : 'board', 3, 8) });
+  if (s.kitchen) list.push({ depth: 19.8, rect: YARD.kitchen, draw: () => drawSprite('kitchen', 8.5, 11.3) });
   drawWithPeople(list, world);
 }
