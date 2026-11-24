@@ -16,4 +16,8 @@ export const DECOR: [SceneSprite, number, number][] = [
   ['flowers', 16.9, 6.6],
   ['bush', 21.2, 11.4],
 ];
-export const TREES: [number, number][] = [[0, 5.2], [3, 0], [13, 1], [9, 0.5], [13, 3.4], [16, 0.6], [20.4, 1.2], [21, 6.3]];
+/** деревья: [клетка x, клетка y, вид] */
+export const TREES: [number, number, SceneSprite][] = [
+  [0, 5.2, 'tree_blossom'], [3, 0, 'pine'], [13, 1, 'tree'], [9, 0.5, 'pine'], [13, 3.4, 'tree_blossom'],
+  [16, 0.6, 'tree'], [20.4, 1.2, 'pine'], [21, 6.3, 'tree_blossom'], [1.2, 0.2, 'pine'], [18.6, 0.3, 'tree_blossom'],
+];

@@ -7,7 +7,7 @@ import { hasGuests } from '@/functions/bookings';
 import { buildUnlocked } from '@/functions/build';
 import type { GameState, RoomId } from '@/models/game';
 import type { World } from '@/models/world';
-import { P, pen, quad, wallX, wallY, type Drawable } from './canvas';
+import { P, pen, wallX, wallY, type Drawable } from './canvas';
 import { drawWithPeople } from './people';
 import { drawSprite } from './sprites';
 
@@ -17,17 +17,14 @@ const GLOW = 'rgba(255, 226, 122, 0.6)';
 const plotVisible = (s: GameState, r: RoomId): boolean =>
   s.rooms[r].built || !SITES[r].buildable || buildUnlocked(s);
 
-function groundTile(s: GameState, x: number, y: number): SceneSprite {
-  if (y === 9 || y === 10) return 'tile_road';
+/** накладная клетка поверх двора: тропинка от двери к дороге или земля под ещё не построенным домиком */
+function overlayTile(s: GameState, x: number, y: number): SceneSprite | null {
   for (const r of ROOM_IDS) {
     const site = SITES[r];
-    // тропинка от двери к дороге
     if (s.rooms[r].built && x === Math.floor(site.doorX) && y >= FRONT_Y && y < 9) return 'tile_path';
-    // земля под ещё не построенным домиком
     if (!s.rooms[r].built && plotVisible(s, r) && x >= site.x && x < site.x + 3 && y >= 3 && y < FRONT_Y) return 'tile_plot';
   }
-  if (x < 3 && y >= 1 && y < 5) return 'tile_field';
-  return (x * 7 + y * 13) % 11 === 0 ? 'tile_grass_b' : 'tile_grass_a';
+  return null;
 }
 
 function buildingSprite(s: GameState, r: RoomId): SceneSprite {
@@ -70,12 +67,15 @@ function emptyPlot(b: RoomSite): void {
 
 export function drawOutside(s: GameState, world: World): void {
   const lit = hasGuests(s);
-  // подложка под тайлы, чтобы на стыках не просвечивал фон
-  quad([P(0, 0), P(GROUND.w, 0), P(GROUND.w, GROUND.h), P(0, GROUND.h)], '#6cb53f');
-  for (let y = 0; y < GROUND.h; y++) {
-    for (let x = 0; x < GROUND.w; x++) drawSprite(groundTile(s, x, y), x, y);
+  drawSprite('ground', 0, 0);
+  for (let y = 3; y < 9; y++) {
+    for (let x = 0; x < GROUND.w; x++) {
+      const tile = overlayTile(s, x, y);
+      if (tile) drawSprite(tile, x, y);
+    }
   }
-  TREES.forEach(([x, y]) => drawSprite('tree', x + 0.5, y + 0.6));
+  // деревья за постройками рисуются до них, остальные — вместе с декором по глубине
+  for (const [x, y, kind] of TREES) if (y < FRONT_Y) drawSprite(kind, x + 0.5, y + 0.6);
   // постройки стоят в один ряд, слева направо — так они правильно перекрывают друг друга
   for (const r of ROOM_IDS) {
     const site = SITES[r];
@@ -84,11 +84,15 @@ export function drawOutside(s: GameState, world: World): void {
       if (lit) windowGlow(site, r === 'home' ? 'house' : s.rooms[r].cls === 'economy' ? 'economy' : 'cabin');
     } else if (plotVisible(s, r)) emptyPlot(site);
   }
-  const list: Drawable[] = DECOR.map(([name, x, y]) => ({
+  const front: Drawable[] = TREES.filter(([, y]) => y >= FRONT_Y).map(([x, y, kind]) => ({
+    depth: x + y + 1.1,
+    draw: () => drawSprite(kind, x + 0.5, y + 0.6),
+  }));
+  const list: Drawable[] = front.concat(DECOR.map(([name, x, y]) => ({
     depth: x + y,
     rect: name === 'bench' ? YARD.bench : undefined,
     draw: () => drawSprite(name, x, y),
-  }));
+  })));
   list.push({ depth: 11.05, rect: YARD.board, draw: () => drawSprite(s.posted ? 'board_posted' : 'board', 3, 8) });
   if (s.kitchen) list.push({ depth: 19.8, rect: YARD.kitchen, draw: () => drawSprite('kitchen', 8.5, 11.3) });
   drawWithPeople(list, world);

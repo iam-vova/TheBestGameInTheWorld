@@ -1,7 +1,8 @@
 @use '../../styles/vars' as *;
 
 .game-app {
-  max-width: 980px;
+  // 960 px канвы, рамка сцены и поля
+  max-width: 988px;
   margin: 0 auto;
   padding: 12px;
 

@@ -231,7 +231,7 @@ function syncLabels(marks: Hotspot[]): void {
     // цель за краем экрана прижимаем к краю со стрелкой — по подписи можно кликнуть и пойти туда
     const edge = x < 4 || x > 96 || y < 6 || y > 100;
     const text = edge ? (x > 96 ? `${h.label} →` : x < 4 ? `← ${h.label}` : `${h.label}`) : (h.label ?? '');
-    return { text, left: `${clamp(x, 9, 91).toFixed(1)}%`, top: `${clamp(y, 9, 97).toFixed(1)}%`, edge };
+    return { text, left: `${clamp(x, 9, 91).toFixed(3)}%`, top: `${clamp(y, 9, 97).toFixed(3)}%`, edge };
   });
   if (JSON.stringify(next) !== JSON.stringify(labels.value)) labels.value = next;
 }

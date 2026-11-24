@@ -219,5 +219,88 @@
   "params": {
    "model": "mess"
   }
+ },
+ {
+  "name": "tree",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "tree"
+  }
+ },
+ {
+  "name": "tree_blossom",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "tree",
+   "blossom": true
+  }
+ },
+ {
+  "name": "pine",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "pine"
+  }
+ },
+ {
+  "name": "bush",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "bush"
+  }
+ },
+ {
+  "name": "flowers",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "flowers"
+  }
+ },
+ {
+  "name": "lamp",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "lamp"
+  }
+ },
+ {
+  "name": "mailbox",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "mailbox"
+  }
+ },
+ {
+  "name": "ground",
+  "file": "yard.js",
+  "scale": "ground",
+  "params": {
+   "model": "ground"
+  }
+ },
+ {
+  "name": "tile_path",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "tile",
+   "kind": "path"
+  }
+ },
+ {
+  "name": "tile_plot",
+  "file": "yard.js",
+  "scale": "out",
+  "params": {
+   "model": "tile",
+   "kind": "plot"
+  }
  }
 ]

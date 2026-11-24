@@ -13,7 +13,7 @@ root = Path(__file__).resolve().parent.parent
 meta = json.loads((root / 'art/sprites/meta.json').read_text())
 images = {name: Image.open(root / f'art/sprites/{name}.png').convert('RGBA') for name in meta}
 
-WIDTH = 512
+WIDTH = 1408
 x = y = row = 0
 entries = {}
 for name in sorted(images, key=lambda n: -images[n].height):

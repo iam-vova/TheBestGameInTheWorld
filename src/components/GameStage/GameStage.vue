@@ -7,9 +7,26 @@ import { spritesReady } from '@/render/sprites';
 
 const { state, world, toast, fading, labels, update, click, goToLabel } = useGame();
 const canvas = ref<HTMLCanvasElement | null>(null);
+const stage = ref<HTMLElement | null>(null);
+const width = ref('100%');
 let raf = 0;
 
+/**
+ * Пиксель канвы должен занимать целое число пикселей экрана. Иначе браузер растягивает строки неравномерно,
+ * и при движении камеры вся картинка мелко дрожит.
+ */
+function fit(): void {
+  const dpr = window.devicePixelRatio || 1;
+  const room = (stage.value?.parentElement?.clientWidth ?? 960) * dpr;
+  const full = VIEW.w * VIEW.scale;
+  const k = Math.max(1, Math.floor(room / full));
+  // на узком экране целого масштаба нет — тогда хотя бы на всю ширину
+  width.value = room < full ? '100%' : `${(full * k) / dpr + 4}px`;
+}
+
 onMounted(() => {
+  fit();
+  window.addEventListener('resize', fit);
   const ctx = canvas.value!.getContext('2d')!;
   let last = performance.now();
   const frame = (t: number) => {
@@ -22,7 +39,10 @@ onMounted(() => {
   // первый кадр — когда атласы загружены
   spritesReady.then(() => (raf = requestAnimationFrame(frame)));
 });
-onBeforeUnmount(() => cancelAnimationFrame(raf));
+onBeforeUnmount(() => {
+  cancelAnimationFrame(raf);
+  window.removeEventListener('resize', fit);
+});
 
 function onPointerDown(ev: PointerEvent): void {
   const r = canvas.value!.getBoundingClientRect();
@@ -31,7 +51,7 @@ function onPointerDown(ev: PointerEvent): void {
 </script>
 
 <template>
-  <div class="game-stage">
+  <div ref="stage" class="game-stage" :style="{ width }">
     <canvas
       ref="canvas"
       class="game-stage__canvas"

@@ -22,10 +22,9 @@ ink = Path(os.environ.get('INK_STUDIO', root / 'tools/.ink-studio')) / 'cli/ink-
 if not ink.exists():
     sys.exit(f'Не найден ink-studio: {ink}. См. описание в начале файла.')
 
-W, H = 1200, 860
 # масштаб рендера задают высота кадра и zoom: при высоте 430 и zoom 1 клетка занимает 64 px
-# имя → (ширина клетки в спрайте, во сколько раз спрайт уменьшается при отрисовке)
-SCALES = {'out': (64, 2), 'room': (48, 1), 'detail': (96, 2)}
+# имя → (ширина клетки в спрайте, во сколько раз спрайт уменьшается при отрисовке, размер кадра)
+SCALES = {'out': (64, 2, 1200, 860), 'room': (48, 1, 1200, 860), 'detail': (96, 2, 1200, 860), 'ground': (64, 2, 1800, 1400)}
 
 models = json.loads((root / 'art/models/models.json').read_text())
 only = set(sys.argv[1:])
@@ -35,7 +34,7 @@ meta = json.loads(meta_file.read_text())
 for m in models:
     if only and m['name'] not in only:
         continue
-    tile, k = SCALES[m['scale']]
+    tile, k, W, H = SCALES[m['scale']]
     with tempfile.TemporaryDirectory() as tmp:
         run = subprocess.run(
             ['node', str(ink), 'export-layers', str(root / 'art/models' / m['file']), '--ortho', '--px', '1', '--px1',

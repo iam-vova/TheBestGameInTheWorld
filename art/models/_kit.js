@@ -30,6 +30,14 @@ const PALETTE = {
   green: [0x2f5a26, 0x417733, 0x6fae4a],
   red: [0x8f2e22, 0xb03a2a, 0xd94f3a],
   gold: [0xb8860b, 0xd9a520, 0xffd35a, 0xffe9a0],
+  grass: [0x4f9a3a, 0x6cb53f, 0x86c94f, 0xa6dc6a],
+  sand: [0xa9824e, 0xc39c63, 0xd6b47c, 0xe6cb98],
+  pathStone: [0x9c8a74, 0xb7a48c, 0xcfc0a8, 0xe6dcc8],
+  soil: [0x6b4a2b, 0x86603a, 0x9c7648, 0xb08a5a],
+  leaf: [0x2a5f2a, 0x3f8a36, 0x5aa845, 0x7cc45a],
+  blossom: [0xd97fa6, 0xf0a3c0, 0xf9c6d8, 0xfde3ec],
+  trunk: [0x4a3220, 0x6b4a2b, 0x86603a],
+  needle: [0x1f4a3a, 0x2c6650, 0x3f8468, 0x5aa080],
 };
 
 const colors = [];
@@ -67,6 +75,10 @@ module.exports = ({ makeBuilder, makeSculpt, KIT: K }) => {
       woodPlanks: K.pixel.planks({ r: ramp.wood, width: 4, along: 'x', seed: 6 }),
       floorPlanks: K.pixel.planks({ r: ramp.floor, width: 6, along: 'x', seed: 4 }),
       paving: K.pixel.masonry({ r: ramp.stone, stone: [9, 6], joint: 1, vary: 0.2, seed: 7 }),
+      lawn: seed => K.pixel.lawn({ r: ramp.grass, tufts: 0.2, cell: 6, patch: 2.4, flowers: [[ramp.blossom[2], 0.03], [ramp.trim[2], 0.02]], seed }),
+      road: K.pixel.masonry({ r: ramp.sand, stone: [14, 9], joint: 0, vary: 0.35, seed: 12 }),
+      cobble: K.pixel.masonry({ r: ramp.pathStone, stone: [7, 5], joint: 1, vary: 0.3, seed: 14 }),
+      furrows: K.pixel.planks({ r: ramp.soil, width: 5, along: 'x', seed: 16 }),
     };
     /** коробка по границам */
     const box = (x0, x1, y0, y1, z0, z1, m, o = {}) =>
@@ -91,11 +103,11 @@ module.exports = ({ makeBuilder, makeSculpt, KIT: K }) => {
       // библиотека считает область выборки грани по ближайшему ребру и оставляет дыры на длинных скатах
       for (const f of solid.faces) f.r = Math.max(w, z1 - z0);
     }
-    const finish = () => {
+    const finish = (radius = 12) => {
       S.bake();
       return B.finish({
         cam: { target: [0, 0, 0], dist: 14, pitch: Math.PI / 6, yaw: Math.PI / 4, ortho: true },
-        detail: 18, dither: 0.1, radius: 12, look: { pixel: true, native: true, clean: false },
+        detail: 18, dither: 0.1, radius, look: { pixel: true, native: true, clean: false },
       });
     };
     return { B, S, K, mat, box, cyl, hipRoof, finish };

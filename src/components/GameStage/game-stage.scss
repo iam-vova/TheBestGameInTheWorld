@@ -2,6 +2,10 @@
 
 .game-stage {
   position: relative;
+  // ширину задаёт компонент: канва плюс рамка
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0 auto;
   border: 2px solid $border;
   border-radius: 6px;
   overflow: hidden;

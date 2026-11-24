@@ -7,8 +7,9 @@ function drawPerson(a: Actor, player: Player | null): void {
   const s = pen.sc.tw / 32;
   const r = (v: number) => Math.round(v * s);
   const p = P(a.x, a.y);
-  const X = Math.round(p[0]);
-  const Y = Math.round(p[1]);
+  // та же сетка, что у спрайтов сцены: полпикселя сцены — целый пиксель канвы
+  const X = Math.round(p[0] * 2) / 2;
+  const Y = Math.round(p[1] * 2) / 2;
 
   g.fillStyle = 'rgba(0,0,0,.22)';
   g.beginPath();

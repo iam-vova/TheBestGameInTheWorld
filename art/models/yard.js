@@ -1,4 +1,4 @@
-// Предметы двора. --params '{"model":"board|sign|fountain|bench|kitchen","posted":true}'
+// Двор: земля, растения и предметы. --params '{"model":"tile|tree|pine|bush|flowers|lamp|mailbox|board|sign|fountain|bench|kitchen", ...}'
 const kit = require('./_kit.js');
 
 module.exports = toolkit => ({
@@ -9,7 +9,56 @@ module.exports = toolkit => ({
     const u = px.out;
     const res = { res: 0.025 };
 
-    if (controls.model === 'board') {
+    if (controls.model === 'ground') {
+      // весь двор одной плитой 22 × 12 клеток (размер — как GROUND в src/data/scenes.ts): трава, дорога и грядки
+      // полосы не перекрываются и режутся на куски: большие и наложенные плиты библиотека рендерит с дырами
+      const lawn = mat.lawn(1);
+      const strip = (z0, z1, x0, x1, m) => {
+        for (let x = x0; x < x1; x += 3) box(x, Math.min(x + 3, x1), -0.14, 0, z0, z1, m, { res: 0.05 });
+      };
+      strip(0, 1, 0, 22, lawn);
+      strip(1, 5, 0, 3, mat.furrows);
+      strip(1, 5, 3, 22, lawn);
+      strip(5, 9, 0, 22, lawn);
+      strip(9, 11, 0, 22, mat.road);
+      strip(11, 12, 0, 22, lawn);
+      return finish(40);
+    } else if (controls.model === 'tile') {
+      // накладные клетки поверх двора: тропинка к двери и земля под стройку; привязка — дальний угол
+      box(0, 1, 0, 0.03, 0, 1, controls.kind === 'path' ? mat.cobble : mat.soil, { res: 0.03 });
+    } else if (controls.model === 'tree') {
+      // лиственное дерево; blossom — в цвету
+      const crown = controls.blossom ? mat.blossom : mat.leaf;
+      cyl(0, 0, 0, 0.75, 0.11, mat.trunk, { res: 0.025 }, 0.07);
+      S.canopy({ at: [0, 1.15, 0], size: [0.62, 0.55, 0.62], lobes: 5, mat: crown, seed: controls.blossom ? 4 : 2, res: 0.035 });
+    } else if (controls.model === 'pine') {
+      S.pine({ at: [0, 0, 0], h: 2.1, w: 0.5, tiers: 4, mat: mat.needle, trunk: mat.trunk, seed: 3 });
+    } else if (controls.model === 'bush') {
+      S.canopy({ at: [0, 0.26, 0], size: [0.38, 0.3, 0.38], lobes: 4, mat: mat.leaf, seed: 7, res: 0.03 });
+      for (const [x, y, z] of [[0.2, 0.42, 0.2], [-0.05, 0.5, 0.3], [0.3, 0.3, -0.05], [0.05, 0.3, 0.37]]) S.ball([x, y, z], 0.045, mat.red, { res: 0.015 });
+    } else if (controls.model === 'flowers') {
+      // клумба: каменный бортик, зелень и цветы
+      const outer = cyl(0, 0, 0, 0.14, 0.42, mat.stone, { hold: true });
+      const inner = cyl(0, 0, 0.05, 0.3, 0.34, mat.stone, { hold: true });
+      S.join('cut', outer, inner, { res: 0.025 });
+      S.canopy({ at: [0, 0.16, 0], size: [0.32, 0.14, 0.32], lobes: 4, mat: mat.leaf, seed: 5, res: 0.025 });
+      for (let i = 0; i < 9; i++) {
+        const a = i * 2.4, r = 0.08 + (i % 3) * 0.09;
+        S.ball([Math.cos(a) * r, 0.27 + (i % 2) * 0.03, Math.sin(a) * r], 0.055, i % 3 ? mat.blossom : mat.trim, { res: 0.015 });
+      }
+    } else if (controls.model === 'lamp') {
+      cyl(0, 0, 0, 0.08, 0.1, mat.door, res);
+      cyl(0, 0, 0.08, u(21), 0.035, mat.door, { res: 0.015 });
+      box(-0.09, 0.09, u(21), u(21) + 0.04, -0.09, 0.09, mat.door, res);
+      box(-0.07, 0.07, u(21) + 0.04, u(27), -0.07, 0.07, mat.brass, res);
+      box(-0.1, 0.1, u(27), u(27) + 0.04, -0.1, 0.1, mat.door, res);
+      S.ball([0, u(27) + 0.07, 0], 0.04, mat.door, { res: 0.015 });
+    } else if (controls.model === 'mailbox') {
+      box(-0.04, 0.04, 0, u(12), -0.04, 0.04, mat.wood, res);
+      box(-0.14, 0.14, u(12), u(19), -0.1, 0.16, mat.door, { res: 0.025, rd: 0.03 });
+      box(-0.09, 0.09, u(15.5), u(16.5), 0.16, 0.18, mat.ink, { res: 0.015 });
+      box(0.14, 0.17, u(15), u(20), 0, 0.05, mat.red, res);
+    } else if (controls.model === 'board') {
       // доска объявлений: столб и щит вдоль оси x, листок появляется после расклейки
       box(-0.08, 0.08, 0, u(22), -0.05, 0.11, mat.wood, res);
       box(-0.6, 0.6, u(8), u(25), 0.1, 0.17, mat.wood, res);
